@@ -15,6 +15,8 @@ h1 .alert{color:var(--alert)}h1 .ok{color:var(--career)}.lede{font-size:16px;col
 .stat .v{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1}.stat .v small{font-size:14px;font-weight:600;color:var(--ink2);margin-left:2px}
 .stat .l{font-size:12px;color:var(--ink2);margin-top:8px}.stat.warn .v{color:var(--alert)}.stat.ok .v{color:var(--career)}
 .stat .dl{font-size:11px;margin-top:5px;font-weight:700}.up{color:var(--alert)}.down{color:var(--career)}.flat{color:var(--ink2)}
+.correction{display:none;margin:18px 0 0;background:#fff8e6;border:1px solid #ead7a8;border-left:5px solid var(--gold);border-radius:14px;padding:15px 18px;box-shadow:var(--shadow)}
+.correction b{display:block;font-size:13.5px;margin-bottom:6px}.correction ul{margin:0;padding-left:18px;color:var(--ink2);font-size:13px}.correction li{margin:3px 0}
 section{margin-top:54px}.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
 .sec-head .idx{font-size:13px;font-weight:700;color:var(--gold)}.sec-head h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:0}
 .sec-sub{color:var(--ink2);font-size:14.5px;margin:0 0 22px;max-width:66ch}
@@ -62,6 +64,7 @@ section{margin-top:54px}.sec-head{display:flex;align-items:baseline;gap:14px;mar
 </style></head><body><div class="wrap">
 <p class="eyebrow" id="eyebrow"></p><p class="note" id="note"></p><h1 id="head"></h1><p class="lede" id="lede"></p>
 <div class="stats" id="stats"></div>
+<div class="correction" id="correctionBox"></div>
 <section><div class="sec-head"><span class="idx">01</span><h2>이번 주, 24시간 × 7일</h2></div>
 <p class="sec-sub">각 칸은 자정~자정 하루. 빨강=가장 긴 날, 초록=수면 보충일. 막대에 올리면 시간대가 보여요.</p>
 <div class="card"><div class="legend">
@@ -101,6 +104,12 @@ const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'}
  const rd=m.lenses.find(l=>l.key==='recovery_debt');
  const stats=[['warn',m.restDays,'일','완전한 휴일',''],['warn',m.peakCommitted,'h',`${KO[m.peakDay]}요일 구속`,dl(d&&d.peakCommitted,true)],[m.sleepMin<5.8?'warn':'ok',m.sleepAvg,'h','수면 평균',dl(d&&d.sleepAvg,false)],[rd.balance<-12?'warn':rd.balance>=0?'ok':'',rd.balance,'h','회복 부채(누적)','']];
  document.getElementById('stats').innerHTML=stats.map(s=>`<div class="stat ${s[0]}"><div class="v num">${s[1]}<small>${s[2]}</small></div><div class="l">${s[3]}</div>${s[4]}</div>`).join('');
+ const corr=m.corrections;
+ if(corr&&corr.present){const rows=[];
+  if(corr.sleepOverride&&Object.keys(corr.sleepOverride).length)rows.push(`수면 보정: ${Object.entries(corr.sleepOverride).map(([d,v])=>`${KO[d]||d} ${v}h`).join(', ')}`);
+  if(corr.categoryOverrides?.length)rows.push(...corr.categoryOverrides.map(c=>`분류 보정: ${esc(c.label||c.match)} → ${esc(c.bucket)}${c.note?` (${esc(c.note)})`:''}`));
+  if(corr.notes?.length)rows.push(...corr.notes.map(n=>`메모: ${esc(n)}`));
+  const box=document.getElementById('correctionBox');box.style.display='block';box.innerHTML=`<b>보정 반영</b><ul>${rows.map(r=>`<li>${r}</li>`).join('')}</ul>`;}
  // grid
  const grid=document.getElementById('grid'),tip=document.getElementById('tip');
  const ax=document.createElement('div');ax.className='hours';[0,6,12,18,24].forEach(h=>{const e=document.createElement('div');e.style.top=(h/24*100)+'%';e.textContent=h===24?'24':h;ax.appendChild(e);});grid.appendChild(ax);

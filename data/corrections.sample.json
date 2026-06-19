@@ -1,0 +1,24 @@
+{
+  "2026-W24": {
+    "sleepOverride": {
+      "thu": 5,
+      "fri": 5.5,
+      "sun": 7
+    },
+    "categoryOverrides": [
+      {
+        "title": "yai-digest",
+        "bucket": "growth",
+        "note": "개인 프로젝트 학습/제작 시간으로 해석"
+      },
+      {
+        "match": "로즈마리|마사지",
+        "bucket": "selfcare"
+      }
+    ],
+    "notes": [
+      "수요일 yai-digest 작업은 생활 시간이 아니라 개인 프로젝트 학습/제작 시간으로 해석.",
+      "수면은 실제 체감 기준으로 목/금/일만 보정."
+    ]
+  }
+}

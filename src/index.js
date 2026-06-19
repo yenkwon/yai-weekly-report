@@ -7,6 +7,7 @@ import { openingNote } from './openingNote.js';
 import { getAdapter } from './selfReport.js';
 import { summaryText, renderHTML, appendHistory } from './renderReport.js';
 import { sendReport, sendText, readSleepReply } from './telegram.js';
+import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
 
 const MODE = process.argv[2] || 'send';
 const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
@@ -18,6 +19,8 @@ const nextRange = (r) => ({ timeMin:r.timeMax, timeMax:new Date(new Date(r.timeM
 
 const cfg = loadConfig('./config');
 const week = isoWeek();
+const corrections = loadCorrections(week);
+const correctedCfg = applyCorrectionsToConfig(cfg, corrections);
 const range = lastWeekRange(cfg.routine.timezone);
 const events = await fetchWeek(cfg.catmap, range);
 const nextEvents = await fetchWeek(cfg.catmap, nextRange(range)).catch(()=>[]);
@@ -25,10 +28,12 @@ const selfReport = await getAdapter().fetchWeek(range).catch(()=>[]);
 const history = fs.existsSync('./data/history.json') ? JSON.parse(fs.readFileSync('./data/history.json','utf8')) : [];
 
 async function build(sleepOverride=null, sleepKnown=false) {
-  const m = withTrends(buildWeek(events, cfg, sleepOverride, range.mondayLocal), history);
-  const ins = analyze(m, history, selfReport, nextEvents, cfg, cfg.catmap);
+  const effectiveSleepOverride = mergeSleepOverrides(corrections.sleepOverride, sleepOverride);
+  const effectiveSleepKnown = sleepKnown || Boolean(effectiveSleepOverride);
+  const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.mondayLocal), history);
+  const ins = analyze(m, history, selfReport, nextEvents, correctedCfg, correctedCfg.catmap);
   const note = await openingNote(m, ins, selfReport);
-  const report = { week, sleepKnown, openingNote: note, selfReports: selfReport, ...m, ...ins };
+  const report = { week, sleepKnown: effectiveSleepKnown, corrections, openingNote: note, selfReports: selfReport, ...m, ...ins };
   fs.mkdirSync(`./${PUBLISH_DIR}/weeks`, { recursive: true });
   const html = renderHTML(report);
   fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);

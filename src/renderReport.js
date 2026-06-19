@@ -4,6 +4,7 @@ const KO = { mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'�
 export function summaryText(r, link) {
   const minTot = (r.buckets.ministry + r.buckets.worship).toFixed(1);
   const rd = r.lenses.find(l=>l.key==='recovery_debt');
+  const correctionLine = correctionSummary(r.corrections);
   const lines = [
     r.openingNote.text, '',
     `🗓️ *${r.week} 워라밸 보고*`,
@@ -14,8 +15,18 @@ export function summaryText(r, link) {
     `• ${r.preview.title}: ${r.preview.flags.length?r.preview.flags[0]:'큰 충돌 없음'}`,
     '', `📊 대시보드 → ${link}`,
   ];
+  if (correctionLine) lines.splice(lines.length - 2, 0, `• ${correctionLine}`);
   if (!r.sleepKnown) lines.push('', '💤 실제 수면이 달랐다면 *답장으로 숫자*만 (예: 6.5 / "목5 금5.5").');
   return lines.join('\n');
+}
+
+function correctionSummary(corrections) {
+  if (!corrections?.present) return '';
+  const parts = [];
+  if (Object.keys(corrections.sleepOverride || {}).length) parts.push('수면');
+  if (corrections.categoryOverrides?.length) parts.push(`분류 ${corrections.categoryOverrides.length}건`);
+  if (corrections.notes?.length) parts.push(`메모 ${corrections.notes.length}건`);
+  return parts.length ? `보정 반영: ${parts.join(' · ')}` : '';
 }
 
 export function renderHTML(report, templatePath = './templates/dashboard.html') {
