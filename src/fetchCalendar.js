@@ -15,6 +15,7 @@ export function lastWeekRange(tz = 'Asia/Seoul', now = new Date()) {
 }
 
 export async function fetchWeek(catmap, range) {
+  requireEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN'], 'Google Calendar');
   const oauth = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
   oauth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
@@ -37,4 +38,11 @@ export async function fetchWeek(catmap, range) {
     }
   }
   return events;
+}
+
+function requireEnv(names, label) {
+  const missing = names.filter((name) => !process.env[name]);
+  if (missing.length) {
+    throw new Error(`${label} is not configured. Missing env/secret: ${missing.join(', ')}`);
+  }
 }
