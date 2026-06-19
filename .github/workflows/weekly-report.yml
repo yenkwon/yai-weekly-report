@@ -1,7 +1,7 @@
 name: weekly-balance-report
 on:
   schedule:
-    - cron: '0 11 * * 0'    # Sun 20:00 KST  → send report + ask for sleep
+    - cron: '0 20 * * 6'    # Sun 05:00 KST  → send report + ask for sleep
     - cron: '30 12 * * 0'   # Sun 21:30 KST  → reconcile sleep reply
   workflow_dispatch:
     inputs:
@@ -43,7 +43,7 @@ jobs:
         id: mode
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "${{ github.event.schedule }}" = "0 11 * * 0" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
+            if [ "${{ github.event.schedule }}" = "0 20 * * 6" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
           else echo "m=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT; fi
       - name: Validate required secrets
         env:
