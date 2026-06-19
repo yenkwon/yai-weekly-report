@@ -1,0 +1,5 @@
+[
+ {"week":"2026-W22","peakCommitted":15.5,"restDays":0,"sleepAvg":6.9,"sleepMin":5.9,"buckets":{"ministry":18,"worship":10,"sleep":48,"selfcare":1.5,"exercise":0},"flags":{"satSleepover":true,"sundaySleep7":true,"exerciseZero":true,"selfcareZero":false,"restZero":true},"recoveryBalance":-2.5,"lateNightCount":1},
+ {"week":"2026-W23","peakCommitted":15.8,"restDays":0,"sleepAvg":6.8,"sleepMin":5.7,"buckets":{"ministry":19,"worship":11,"sleep":47.5,"selfcare":0,"exercise":0},"flags":{"satSleepover":true,"sundaySleep7":true,"exerciseZero":true,"selfcareZero":true,"restZero":true},"recoveryBalance":-7,"lateNightCount":2},
+ {"week":"2026-W24","peakCommitted":16.4,"restDays":0,"sleepAvg":6.8,"sleepMin":5.6,"buckets":{"ministry":18,"worship":10,"sleep":47.6,"selfcare":1.5,"exercise":0},"flags":{"satSleepover":true,"sundaySleep7":true,"exerciseZero":true,"selfcareZero":false,"restZero":true},"recoveryBalance":-9.9,"lateNightCount":2}
+]

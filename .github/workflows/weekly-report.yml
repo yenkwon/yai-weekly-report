@@ -1,0 +1,55 @@
+name: weekly-balance-report
+on:
+  schedule:
+    - cron: '0 11 * * 0'    # Sun 20:00 KST  → send report + ask for sleep
+    - cron: '30 12 * * 0'   # Sun 21:30 KST  → reconcile sleep reply
+  workflow_dispatch:
+    inputs:
+      mode: { description: 'send | reconcile', required: true, default: 'send' }
+
+permissions:
+  contents: write           # to commit history.json + public/ for Pages
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout worklife self reports
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: yenkwon/yai-worklife-agent
+          path: worklife-agent
+          token: ${{ secrets.WORKLIFE_REPO_TOKEN || github.token }}
+          sparse-checkout: |
+            store/self-reports.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci || npm install
+      - name: Pick mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ "${{ github.event.schedule }}" = "0 11 * * 0" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
+          else echo "m=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT; fi
+      - name: Run
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SELF_REPORT_SOURCE: telegram
+          WORKLIFE_SELF_REPORTS_PATH: worklife-agent/store/self-reports.json
+          PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
+        run: node src/index.js ${{ steps.mode.outputs.m }}
+      - name: Commit history + dashboard
+        run: |
+          git config user.name "balance-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/history.json data/last-msg.json public || true
+          git commit -m "report ${{ steps.mode.outputs.m }} $(date -u +%F)" || echo "nothing to commit"
+          git push || echo "push skipped"

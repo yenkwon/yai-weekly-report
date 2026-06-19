@@ -1,0 +1,76 @@
+{
+  "timezone": "Asia/Seoul",
+  "reportTime": "20:00",
+  "reconcileTime": "21:30",
+  "weekdays": {
+    "mon": {
+      "mode": "wfh",
+      "work": [
+        "07:50",
+        "17:10"
+      ]
+    },
+    "tue": {
+      "mode": "wfh",
+      "work": [
+        "07:50",
+        "17:10"
+      ]
+    },
+    "wed": {
+      "mode": "wfh",
+      "work": [
+        "07:50",
+        "17:10"
+      ]
+    },
+    "thu": {
+      "mode": "office_car",
+      "leaveHome": "06:50",
+      "work": [
+        "08:00",
+        "17:10"
+      ]
+    },
+    "fri": {
+      "mode": "office_subway",
+      "leaveHome": "06:45",
+      "work": [
+        "08:00",
+        "17:10"
+      ]
+    }
+  },
+  "commuteHours": {
+    "daeyami_gwacheon": 0.75,
+    "gwacheon_yangpyeong": 1.42,
+    "yangpyeong_gunpo": 1.5,
+    "gunpo_yangpyeong": 1.5
+  },
+  "sleepDefault": {
+    "mon": 6.83,
+    "tue": 6.83,
+    "wed": 6.83,
+    "thu": 6,
+    "fri": 5.42,
+    "sat": 6.33,
+    "sun": 8.5
+  },
+  "fixedMinistry": {
+    "thuWorshipHours": 3.17,
+    "satSleepover": true,
+    "sunChurch": {
+      "start": "10:00",
+      "end": "17:00",
+      "driveHomeHours": 1.5
+    }
+  },
+  "carTimeSplit": {
+    "learning": 0.5,
+    "calls": 0.5
+  },
+  "recoveryTarget": {
+    "sleepPerNight": 7,
+    "selfcarePerWeek": 3
+  }
+}

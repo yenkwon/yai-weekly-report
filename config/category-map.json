@@ -1,0 +1,47 @@
+{
+  "calendars": {
+    "Music": "worship",
+    "Mamre": "ministry",
+    "Ministry Support": "ministry",
+    "Study": "growth",
+    "Book/Writing": "growth",
+    "Work Out": "exercise",
+    "cloudnine": "life"
+  },
+  "keywordOverrides": [
+    {
+      "match": "예배|찬양|반주|악보|워십",
+      "bucket": "worship"
+    },
+    {
+      "match": "YJDS|로고스|회의|전도|청소|주보|교적|라이딩|묵상|사역|MT|수련회|목사|집사|간사|사모님",
+      "bucket": "ministry"
+    },
+    {
+      "match": "Agentforce|Salesforce|대표님|FDE|MCAE",
+      "bucket": "career"
+    },
+    {
+      "match": "로즈마리|에스테틱|마사지",
+      "bucket": "selfcare"
+    },
+    {
+      "match": "영화|지인|모임|생일|할머니|가족",
+      "bucket": "social"
+    }
+  ],
+  "buckets": [
+    "sleep",
+    "work",
+    "commute",
+    "ministry",
+    "worship",
+    "career",
+    "growth",
+    "social",
+    "family",
+    "selfcare",
+    "exercise",
+    "life"
+  ]
+}

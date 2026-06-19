@@ -1,0 +1,14 @@
+import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
+import fs from 'node:fs';
+const cfg = loadConfig('./config');
+const events = JSON.parse(fs.readFileSync('./sample/sample-week.json','utf8'));
+const history = JSON.parse(fs.readFileSync('./data/history.sample.json','utf8'));
+const m = withTrends(buildWeek(events, cfg), history);
+console.log('committed/day :', m.committedByDay);
+console.log('peak          :', m.peakDay, m.peakCommitted+'h');
+console.log('rest days     :', m.restDays, '| zero-rest streak:', m.zeroRestStreak);
+console.log('sleep avg/min :', m.sleepAvg, '/', m.sleepMin);
+console.log('driving       :', m.drivingHours+'h');
+console.log('buckets       :', m.buckets);
+console.log('delta vs W24  :', m.delta);
+console.log('special days  :', m.special);

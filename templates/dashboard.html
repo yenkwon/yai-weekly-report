@@ -1,0 +1,144 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"><title>주간 워라밸 보고</title>
+<style>
+:root{--bg:#f1efe9;--panel:#faf8f4;--ink:#24283c;--ink2:#5b6072;--line:#e2ddd2;--sleep:#9aa3bd;--work:#42548a;--commute:#cf7a52;--ministry:#7d6aa6;--life:#cdbd92;--alert:#cf5b48;--gold:#b9923a;--career:#2f8a78;--shadow:0 1px 2px rgba(40,40,60,.04),0 8px 30px rgba(40,40,60,.06)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-family:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:54px 24px 80px}.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:12.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink2);margin:0 0 18px}
+.note{font-size:clamp(20px,3.2vw,27px);line-height:1.5;font-weight:600;letter-spacing:-.01em;margin:0 0 22px;color:var(--ink)}
+.note::before{content:"“";color:var(--gold);font-weight:800;margin-right:2px}.note::after{content:"”";color:var(--gold);font-weight:800}
+h1{font-size:clamp(24px,4vw,36px);line-height:1.15;font-weight:800;letter-spacing:-.02em;margin:0 0 12px}
+h1 .alert{color:var(--alert)}h1 .ok{color:var(--career)}.lede{font-size:16px;color:var(--ink2);max-width:66ch;margin:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:34px 0 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 16px;box-shadow:var(--shadow)}
+.stat .v{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1}.stat .v small{font-size:14px;font-weight:600;color:var(--ink2);margin-left:2px}
+.stat .l{font-size:12px;color:var(--ink2);margin-top:8px}.stat.warn .v{color:var(--alert)}.stat.ok .v{color:var(--career)}
+.stat .dl{font-size:11px;margin-top:5px;font-weight:700}.up{color:var(--alert)}.down{color:var(--career)}.flat{color:var(--ink2)}
+section{margin-top:54px}.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.sec-head .idx{font-size:13px;font-weight:700;color:var(--gold)}.sec-head h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:0}
+.sec-sub{color:var(--ink2);font-size:14.5px;margin:0 0 22px;max-width:66ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 24px 20px;box-shadow:var(--shadow)}
+.discovery{background:linear-gradient(180deg,#fbf6ec,#faf8f4);border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:16px;padding:24px 26px;box-shadow:var(--shadow)}
+.discovery h3{margin:0 0 6px;font-size:19px;font-weight:800}.discovery p{margin:0;font-size:14.5px;color:var(--ink2)}
+.legend{display:flex;flex-wrap:wrap;gap:14px 18px;margin-bottom:20px;font-size:12.5px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.weekgrid{display:flex;gap:10px;align-items:flex-end}.hours{width:30px;flex:none;position:relative;height:360px;font-size:10px;color:#b3ab98}
+.hours div{position:absolute;right:0;transform:translateY(-50%)}.daycol{flex:1;display:flex;flex-direction:column;align-items:center}
+.stack{width:100%;height:360px;border-radius:9px;overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--line);background:#fff}
+.seg{width:100%;transition:filter .15s}.seg:hover{filter:brightness(1.08)}
+.seg.sleep{background:repeating-linear-gradient(45deg,#9aa3bd,#9aa3bd 6px,#929bb6 6px,#929bb6 12px)}
+.seg.work{background:var(--work)}.seg.commute{background:var(--commute)}.seg.ministry{background:var(--ministry)}.seg.life{background:var(--life)}
+.daycol.peak .stack{box-shadow:0 0 0 2px var(--alert);border-color:var(--alert)}.daycol.rest .stack{box-shadow:0 0 0 2px var(--career);border-color:var(--career)}
+.dlabel{margin-top:10px;font-size:13px;font-weight:700}.daycol.peak .dlabel{color:var(--alert)}.daycol.rest .dlabel{color:var(--career)}
+.dcommit{font-size:11px;color:var(--ink2)}.tag{display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#fff;border-radius:6px;padding:1px 6px}.tag.r{background:var(--alert)}.tag.g{background:var(--career)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;padding:6px 9px;border-radius:7px;opacity:0;transition:opacity .12s;z-index:10;white-space:nowrap;transform:translate(-50%,-120%)}
+.lenses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.lens{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);border-left:4px solid var(--ink2)}
+.lens.win{border-left-color:var(--career)}.lens.watch{border-left-color:var(--alert)}.lens.note{border-left-color:var(--gold)}
+.lens h3{margin:0 0 6px;font-size:15.5px;font-weight:800}.lens p{margin:0;font-size:13.5px;color:var(--ink2)}
+.osbar{height:12px;border-radius:6px;overflow:hidden;display:flex;margin:10px 0 4px}.osbar .o{background:var(--ministry)}.osbar .s{background:var(--career)}
+.oslab{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2)}
+ .sr{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.sr b{font-weight:700}.sr-list{margin-top:16px;border-top:1px solid var(--line)}.sr-item{padding:12px 0;border-bottom:1px dashed var(--line)}.sr-item:last-child{border-bottom:0}.sr-meta{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:3px}.sr-note{font-size:13.5px;color:var(--ink2);margin:0}.sr-next{font-size:12.5px;color:var(--ink2);margin:4px 0 0}
+.streak{font-size:13px;margin:3px 0}.streak.k{color:var(--career)}.streak.b{color:var(--alert)}
+.bars{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow)}
+.bar-row{display:grid;grid-template-columns:130px 1fr 92px;align-items:center;gap:14px;padding:9px 0}
+.bar-row .cat{font-size:14px;font-weight:600}.track{height:22px;background:#ece7dc;border-radius:7px;overflow:hidden}
+.fill{height:100%;border-radius:7px}.bar-row .val{text-align:right;font-weight:700;font-size:14px}.bar-row .val small{font-weight:500;color:var(--ink2);font-size:12px}
+.checkcard{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 28px;box-shadow:var(--shadow)}
+.preview{background:#eef3f1;border:1px solid #d6e2dd;border-radius:14px;padding:18px 20px;margin-bottom:20px}
+.preview h4{margin:0 0 4px;font-size:14px;font-weight:800;color:var(--career)}.preview p{margin:0;font-size:13.5px;color:var(--ink2)}
+.progress{display:flex;align-items:center;gap:16px;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.ring{--p:0;width:60px;height:60px;border-radius:50%;flex:none;background:conic-gradient(var(--career) calc(var(--p)*1%),#e6e0d4 0);display:grid;place-items:center}
+.ring i{width:46px;height:46px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:14px}
+.progress .pt b{display:block;font-size:15px}.progress .pt{font-size:13px;color:var(--ink2)}
+.check{display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px dashed var(--line);cursor:pointer}.check:last-child{border-bottom:0}
+.check input{appearance:none;width:21px;height:21px;border:2px solid var(--line);border-radius:6px;margin:2px 0 0;flex:none;cursor:pointer;position:relative}
+.check input:checked{background:var(--career);border-color:var(--career)}.check input:checked::after{content:"✓";color:#fff;font-size:13px;font-weight:800;position:absolute;top:-1px;left:3px}
+.check .ct b{font-weight:700;font-size:14.5px}.check .ct span{display:block;font-size:13px;color:var(--ink2);margin-top:2px}
+.check input:checked ~ .ct{opacity:.5;text-decoration:line-through}
+.foot{margin-top:46px;font-size:13px;color:var(--ink2);text-align:center;line-height:1.7}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.hours{height:280px}.stack{height:280px}.weekgrid{gap:5px}.dlabel{font-size:11px}.lenses{grid-template-columns:1fr}.bar-row{grid-template-columns:108px 1fr 74px}}
+</style></head><body><div class="wrap">
+<p class="eyebrow" id="eyebrow"></p><p class="note" id="note"></p><h1 id="head"></h1><p class="lede" id="lede"></p>
+<div class="stats" id="stats"></div>
+<section><div class="sec-head"><span class="idx">01</span><h2>이번 주, 24시간 × 7일</h2></div>
+<p class="sec-sub">각 칸은 자정~자정 하루. 빨강=가장 긴 날, 초록=수면 보충일. 막대에 올리면 시간대가 보여요.</p>
+<div class="card"><div class="legend">
+<span><i class="seg sleep" style="width:12px;height:12px"></i>수면</span><span><i style="background:var(--work)"></i>본업</span>
+<span><i style="background:var(--commute)"></i>통근·운전</span><span><i style="background:var(--ministry)"></i>사역·예배</span><span><i style="background:var(--life)"></i>생활·여가</span></div>
+<div class="weekgrid" id="grid"></div></div></section>
+<section><div class="sec-head"><span class="idx">02</span><h2>이번 주의 발견</h2></div>
+<p class="sec-sub">4주 평소 리듬과 가장 다른 점을 자동으로 짚어요. 같은 자리지만 매주 답이 달라집니다.</p>
+<div class="discovery"><h3 id="disc-t"></h3><p id="disc-d"></p></div></section>
+<section><div class="sec-head"><span class="idx">03</span><h2>다섯 가지 렌즈로 복기</h2></div>
+<p class="sec-sub">부하의 총량만이 아니라 균형·회복·리듬·연속성, 그리고 체감까지 — 여러 차원에서.</p>
+<div class="lenses" id="lenses"></div></section>
+<section id="srSection" style="display:none"><div class="sec-head"><span class="idx">04</span><h2>자기보고와 만나는 지점</h2></div>
+<p class="sec-sub">매일의 한 줄 복기·점수가 객관 수치와 만나면 '체감 vs 실제'가 보여요.</p>
+<div class="card" id="srCard"></div></section>
+<section><div class="sec-head"><span class="idx" id="idx-bud">05</span><h2>168시간 분배</h2></div>
+<p class="sec-sub">생활·여가엔 식사·집안일·대학원·개인작업이 포함돼, 순수 휴식은 그 일부예요.</p>
+<div class="bars" id="bars"></div></section>
+<section><div class="sec-head"><span class="idx" id="idx-rec">06</span><h2>다음 주 — 미리보기 & 추천</h2></div>
+<p class="sec-sub">유일하게 앞을 보는 칸. 다음 주 충돌을 미리 경고하고, 이번 주 데이터로 조정안을 뽑았어요.</p>
+<div class="checkcard"><div class="preview"><h4 id="pv-t"></h4><p id="pv-d"></p></div>
+<div class="progress"><div class="ring" id="ring"><i id="ringtxt"></i></div><div class="pt"><b>다음 주를 위한 실험</b>눌러서 캘린더에 보호된 약속으로</div></div>
+<div id="checks"></div></div></section>
+<p class="foot" id="foot"></p></div><div class="tip" id="tip"></div>
+<script>
+const DATA = /*__WEEK_DATA__*/ null;
+const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'};const DAYS=['mon','tue','wed','thu','fri','sat','sun'];
+ const fmt=h=>`${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+(function(){const m=DATA;if(!m){document.body.innerHTML='<p style="padding:40px">데이터 없음</p>';return;}
+ const os=m.lenses.find(l=>l.key==='others_self');
+ document.getElementById('eyebrow').textContent=`주간 워라밸 보고 · ${m.week}`;
+ document.getElementById('note').textContent=m.openingNote.text;
+ document.getElementById('head').innerHTML=m.restDays===0?`완전한 휴일 <span class="alert">${m.restDays}일</span>`+(m.zeroRestStreak>1?` · ${m.zeroRestStreak}주 연속`:''):`완전한 휴일 <span class="ok">${m.restDays}일</span>`;
+ document.getElementById('lede').textContent=`가장 긴 날 ${KO[m.peakDay]} ${m.peakCommitted}h · 사역+예배 ${(m.buckets.ministry+m.buckets.worship).toFixed(1)}h · 수면 평균 ${m.sleepAvg}h · 타인 ${os.othersPct}% / 나 ${os.selfPct}%.`;
+ const d=m.delta;const dl=(v,inv)=>v==null?'<div class="dl flat">기준 주차</div>':`<div class="dl ${v===0?'flat':(inv?v<0:v>0)?'up':'down'}">${v>0?'▲':v<0?'▼':'±'}${Math.abs(v)} vs 지난주</div>`;
+ const rd=m.lenses.find(l=>l.key==='recovery_debt');
+ const stats=[['warn',m.restDays,'일','완전한 휴일',''],['warn',m.peakCommitted,'h',`${KO[m.peakDay]}요일 구속`,dl(d&&d.peakCommitted,true)],[m.sleepMin<5.8?'warn':'ok',m.sleepAvg,'h','수면 평균',dl(d&&d.sleepAvg,false)],[rd.balance<-12?'warn':rd.balance>=0?'ok':'',rd.balance,'h','회복 부채(누적)','']];
+ document.getElementById('stats').innerHTML=stats.map(s=>`<div class="stat ${s[0]}"><div class="v num">${s[1]}<small>${s[2]}</small></div><div class="l">${s[3]}</div>${s[4]}</div>`).join('');
+ // grid
+ const grid=document.getElementById('grid'),tip=document.getElementById('tip');
+ const ax=document.createElement('div');ax.className='hours';[0,6,12,18,24].forEach(h=>{const e=document.createElement('div');e.style.top=(h/24*100)+'%';e.textContent=h===24?'24':h;ax.appendChild(e);});grid.appendChild(ax);
+ const lab={sleep:'수면',work:'본업',commute:'통근·운전',ministry:'사역·예배',life:'생활·여가'};
+ for(const day of DAYS){const col=document.createElement('div');col.className='daycol'+(day===m.peakDay?' peak':'')+(m.sleepByDay[day]>=8?' rest':'');
+  const st=document.createElement('div');st.className='stack';
+  for(const [s,e,t] of m.dayBlocks[day]){const sg=document.createElement('div');sg.className='seg '+t;sg.style.flexBasis=((e-s)/24*100)+'%';
+   sg.addEventListener('mousemove',ev=>{tip.style.opacity=1;tip.style.left=ev.clientX+'px';tip.style.top=ev.clientY+'px';tip.textContent=`${lab[t]} · ${fmt(s)}–${fmt(e)} (${(e-s).toFixed(1)}h)`;});
+   sg.addEventListener('mouseleave',()=>tip.style.opacity=0);st.appendChild(sg);}
+  col.appendChild(st);const l=document.createElement('div');l.className='dlabel';l.textContent=KO[day];col.appendChild(l);
+  const c=document.createElement('div');c.className='dcommit';c.textContent='구속 '+m.committedByDay[day]+'h';col.appendChild(c);
+  if(day===m.peakDay){const t=document.createElement('div');t.className='tag r';t.textContent='가장 긴 날';col.appendChild(t);}
+  else if(m.sleepByDay[day]>=8){const t=document.createElement('div');t.className='tag g';t.textContent='수면 보충';col.appendChild(t);}
+  grid.appendChild(col);}
+ // discovery
+ document.getElementById('disc-t').textContent=m.discovery.title;document.getElementById('disc-d').textContent=m.discovery.detail;
+ // lenses
+ document.getElementById('lenses').innerHTML=m.lenses.map(l=>{
+  let extra='';
+  if(l.key==='others_self')extra=`<div class="osbar"><div class="o" style="width:${l.othersPct}%"></div><div class="s" style="width:${l.selfPct}%"></div></div><div class="oslab"><span>타인 ${l.othersPct}%</span><span>나 ${l.selfPct}%</span></div>`;
+  if(l.key==='streaks')extra=(l.keeping||[]).map(k=>`<div class="streak k">${k}</div>`).join('')+(l.breaking||[]).map(b=>`<div class="streak b">${b}</div>`).join('');
+  return `<div class="lens ${l.tone}"><h3>${l.title}</h3><p>${l.detail}</p>${extra}</div>`;}).join('');
+ // self-report
+  if(m.subjective&&m.subjective.present){document.getElementById('srSection').style.display='';
+   const g=m.subjective.gap,reports=(m.selfReports||[]).filter(r=>r&&(r.note||r.raw||r.score!=null));
+   const reportHtml=reports.length?`<div class="sr-list">${reports.map(r=>`<div class="sr-item"><div class="sr-meta">${esc(r.date)} · ${r.score??'–'}/5</div><p class="sr-note">${esc(r.note||r.raw||'')}</p>${r.tomorrow_priority?`<p class="sr-next">다음날 우선순위: ${esc(r.tomorrow_priority)}</p>`:''}</div>`).join('')}</div>`:'';
+   document.getElementById('srCard').innerHTML=`<div class="sr"><b style="font-size:22px">체감 평균 ${m.subjective.avgScore ?? '–'}점</b></div>`+
+    (g?`<p style="margin-top:8px;color:var(--ink2);font-size:14px">주목할 갭 — ${esc(g.text)}${g.note?` · “${esc(g.note)}”`:''}</p>`:`<p style="margin-top:8px;color:var(--ink2);font-size:14px">체감과 실제 부하가 대체로 나란했어요.</p>`)+reportHtml;
+  } else {document.getElementById('idx-bud').textContent='04';document.getElementById('idx-rec').textContent='05';}
+ // budget
+ const order=[['work','본업','work'],['sleep','수면','sleep'],['life','생활·여가','life'],['ministry','사역','ministry'],['worship','예배·찬양','ministry'],['commute','이동','commute'],['career','커리어','work'],['social','친교','life'],['growth','자기계발','life'],['selfcare','자기돌봄','career']];
+ const max=Math.max(...order.map(o=>m.buckets[o[0]]||0));
+ document.getElementById('bars').innerHTML=order.filter(o=>(m.buckets[o[0]]||0)>0).map(o=>{const h=m.buckets[o[0]]||0,p=(h/168*100).toFixed(1);const bg=o[2]==='sleep'?'repeating-linear-gradient(45deg,#9aa3bd,#9aa3bd 6px,#929bb6 6px,#929bb6 12px)':`var(--${o[2]})`;return `<div class="bar-row"><div class="cat">${o[1]}</div><div class="track"><div class="fill" style="width:${h/max*100}%;background:${bg}"></div></div><div class="val">${h}<small>h · ${p}%</small></div></div>`;}).join('');
+ // preview + recommendations
+ document.getElementById('pv-t').textContent='📅 '+m.preview.title;document.getElementById('pv-d').textContent=m.preview.detail;
+ const box=document.getElementById('checks'),ring=document.getElementById('ring'),txt=document.getElementById('ringtxt');let done=0;
+ const upd=()=>{ring.style.setProperty('--p',done/m.recommendations.length*100);txt.textContent=`${done}/${m.recommendations.length}`;};
+ m.recommendations.forEach(r=>{const lb=document.createElement('label');lb.className='check';lb.innerHTML=`<input type="checkbox"><div class="ct"><b>${r.title}</b><span>${r.detail}</span></div>`;lb.querySelector('input').addEventListener('change',e=>{done+=e.target.checked?1:-1;upd();});box.appendChild(lb);});upd();
+ document.getElementById('foot').textContent=`본업 8–5 · 목 자차→과천→양평 · 토 양평 1박 · 일 양평 예배 기준 · 오프닝 노트 ${m.openingNote.source==='llm'?'(AI)':'(자동)'} · ${m.week}`;
+})();
+</script></body></html>

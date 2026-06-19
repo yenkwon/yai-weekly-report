@@ -1,0 +1,12 @@
+{
+  "name": "yenny-balance-report",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Weekly work-life-balance report from Google Calendar → Telegram (Sun 20:00 KST)",
+  "scripts": {
+    "send": "node src/index.js send",
+    "reconcile": "node src/index.js reconcile",
+    "test": "node sample/run.js"
+  },
+  "dependencies": { "googleapis": "^144.0.0" }
+}
