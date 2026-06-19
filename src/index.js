@@ -9,7 +9,8 @@ import { summaryText, renderHTML, appendHistory } from './renderReport.js';
 import { sendReport, sendText, readSleepReply } from './telegram.js';
 
 const MODE = process.argv[2] || 'send';
-const PAGES = process.env.PAGES_BASE_URL || 'https://USER.github.io/yenny-balance-report';
+const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
+const PUBLISH_DIR = process.env.PUBLISH_DIR || 'docs';
 const isoWeek = (d=new Date()) => { const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
   const day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3); const y=t.getUTCFullYear();
   const w=Math.ceil(((t-new Date(Date.UTC(y,0,4)))/864e5+1)/7); return `${y}-W${String(w).padStart(2,'0')}`; };
@@ -28,10 +29,10 @@ async function build(sleepOverride=null, sleepKnown=false) {
   const ins = analyze(m, history, selfReport, nextEvents, cfg, cfg.catmap);
   const note = await openingNote(m, ins, selfReport);
   const report = { week, sleepKnown, openingNote: note, selfReports: selfReport, ...m, ...ins };
-  fs.mkdirSync('./public/weeks', { recursive: true });
+  fs.mkdirSync(`./${PUBLISH_DIR}/weeks`, { recursive: true });
   const html = renderHTML(report);
-  fs.writeFileSync('./public/index.html', html);
-  fs.writeFileSync(`./public/weeks/${week}.html`, html);
+  fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);
+  fs.writeFileSync(`./${PUBLISH_DIR}/weeks/${week}.html`, html);
   appendHistory('./data/history.json', week, m, ins.historyRow);
   return { report, link: `${PAGES}/weeks/${week}.html` };
 }

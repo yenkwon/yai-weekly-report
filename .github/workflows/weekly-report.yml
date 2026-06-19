@@ -8,7 +8,7 @@ on:
       mode: { description: 'send | reconcile', required: true, default: 'send' }
 
 permissions:
-  contents: write           # to commit history.json + public/ for Pages
+  contents: write           # to commit history.json + docs/ for Pages
 
 jobs:
   report:
@@ -73,12 +73,13 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SELF_REPORT_SOURCE: telegram
           WORKLIFE_SELF_REPORTS_PATH: worklife-agent/store/self-reports.json
+          PUBLISH_DIR: docs
           PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
         run: node src/index.js ${{ steps.mode.outputs.m }}
       - name: Commit history + dashboard
         run: |
           git config user.name "balance-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/history.json data/last-msg.json public || true
+          git add data/history.json data/last-msg.json docs || true
           git commit -m "report ${{ steps.mode.outputs.m }} $(date -u +%F)" || echo "nothing to commit"
           git push || echo "push skipped"
