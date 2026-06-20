@@ -30,7 +30,17 @@ function correctionSummary(corrections) {
 }
 
 export function renderHTML(report, templatePath = './templates/dashboard.html') {
-  return fs.readFileSync(templatePath,'utf8').replace('/*__WEEK_DATA__*/ null', JSON.stringify(report));
+  return fs.readFileSync(templatePath,'utf8').replace('/*__WEEK_DATA__*/ null', serializeForScript(report));
+}
+
+function serializeForScript(value) {
+  return JSON.stringify(value).replace(/[<>&\u2028\u2029]/g, (char) => ({
+    '<': '\\u003c',
+    '>': '\\u003e',
+    '&': '\\u0026',
+    '\u2028': '\\u2028',
+    '\u2029': '\\u2029',
+  }[char]));
 }
 
 export function appendHistory(historyPath, week, m, patch={}) {

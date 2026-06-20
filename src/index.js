@@ -26,14 +26,26 @@ const events = await fetchWeek(cfg.catmap, range);
 const nextEvents = await fetchWeek(cfg.catmap, nextRange(range)).catch(()=>[]);
 const selfReport = await getAdapter().fetchWeek(range).catch(()=>[]);
 const history = fs.existsSync('./data/history.json') ? JSON.parse(fs.readFileSync('./data/history.json','utf8')) : [];
+const priorHistory = history.filter((row) => row.week !== week);
 
 async function build(sleepOverride=null, sleepKnown=false) {
   const effectiveSleepOverride = mergeSleepOverrides(corrections.sleepOverride, sleepOverride);
-  const effectiveSleepKnown = sleepKnown || Boolean(effectiveSleepOverride);
-  const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.mondayLocal), history);
-  const ins = analyze(m, history, selfReport, nextEvents, correctedCfg, correctedCfg.catmap);
+  const sleepOverrideDays = Object.keys(effectiveSleepOverride || {});
+  const effectiveSleepKnown = sleepOverrideDays.length === 7;
+  const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.mondayLocal), priorHistory);
+  const ins = analyze(m, priorHistory, selfReport, nextEvents, correctedCfg, correctedCfg.catmap);
   const note = await openingNote(m, ins, selfReport);
-  const report = { week, sleepKnown: effectiveSleepKnown, corrections, openingNote: note, selfReports: selfReport, ...m, ...ins };
+  const report = {
+    week,
+    sleepKnown: effectiveSleepKnown,
+    sleepOverrideDays,
+    sleepSource: sleepOverrideDays.length ? (sleepKnown ? 'reply' : 'correction') : 'estimate',
+    corrections,
+    openingNote: note,
+    selfReports: selfReport,
+    ...m,
+    ...ins,
+  };
   fs.mkdirSync(`./${PUBLISH_DIR}/weeks`, { recursive: true });
   const html = renderHTML(report);
   fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);

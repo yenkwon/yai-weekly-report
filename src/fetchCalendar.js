@@ -4,14 +4,15 @@ import { google } from 'googleapis';
 
 export function lastWeekRange(tz = 'Asia/Seoul', now = new Date()) {
   // Returns [Mon 00:00, next Mon 00:00) of the *just-finished* week (Sun report → previous Mon–Sun)
-  const local = new Date(now.toLocaleString('en-US', { timeZone: tz }));
-  const dow = (local.getDay() + 6) % 7;           // Mon=0
-  const thisMon = new Date(local); thisMon.setHours(0,0,0,0); thisMon.setDate(local.getDate() - dow);
-  const start = new Date(thisMon);                  // this week's Monday
-  const end = new Date(thisMon); end.setDate(thisMon.getDate() + 7);
-  const pad = (n)=>String(n).padStart(2,'0');
-  const mondayLocal = `${thisMon.getFullYear()}-${pad(thisMon.getMonth()+1)}-${pad(thisMon.getDate())}`;
-  return { timeMin: start.toISOString(), timeMax: end.toISOString(), mondayLocal };
+  const todayLocal = dateKeyInTimeZone(now, tz);
+  const dow = weekdayIndex(todayLocal);           // Mon=0
+  const mondayLocal = addDays(todayLocal, -dow);
+  const nextMondayLocal = addDays(mondayLocal, 7);
+  return {
+    timeMin: zonedMidnight(mondayLocal, tz).toISOString(),
+    timeMax: zonedMidnight(nextMondayLocal, tz).toISOString(),
+    mondayLocal,
+  };
 }
 
 export async function fetchWeek(catmap, range) {
@@ -45,4 +46,34 @@ function requireEnv(names, label) {
   if (missing.length) {
     throw new Error(`${label} is not configured. Missing env/secret: ${missing.join(', ')}`);
   }
+}
+
+function dateKeyInTimeZone(date, tz) {
+  const values = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date).map((part) => [part.type, part.value])
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function weekdayIndex(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
+}
+
+function addDays(dateKey, days) {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function zonedMidnight(dateKey, tz) {
+  if (tz !== 'Asia/Seoul') {
+    throw new Error(`Unsupported report timezone: ${tz}`);
+  }
+  return new Date(`${dateKey}T00:00:00+09:00`);
 }

@@ -19,10 +19,12 @@ export async function sendReport(text) {
 // On reconcile run: find a reply to our report message and parse a sleep override.
 export async function readSleepReply(reportMsgId) {
   requireTelegramEnv();
-  const r = await fetch(API(process.env.TELEGRAM_BOT_TOKEN, 'getUpdates') + '?offset=-20');
+  const params = new URLSearchParams({ timeout: '0', limit: '100' });
+  const r = await fetch(`${API(process.env.TELEGRAM_BOT_TOKEN, 'getUpdates')}?${params}`);
   const j = await r.json();
   if (!r.ok || !j.ok) throw new Error(`Telegram getUpdates failed: ${j.description || r.status}`);
   const reply = (j.result || []).reverse().find(u =>
+    String(u.message?.chat?.id || '') === String(process.env.TELEGRAM_CHAT_ID) &&
     u.message?.reply_to_message?.message_id === reportMsgId);
   if (!reply) return null;
   return parseSleep(reply.message.text);

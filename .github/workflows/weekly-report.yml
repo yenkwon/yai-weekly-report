@@ -10,18 +10,34 @@ on:
 permissions:
   contents: write           # to commit history.json + docs/ for Pages
 
+concurrency:
+  group: weekly-balance-report
+  cancel-in-progress: false
+
 jobs:
   report:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Sync latest branch state
+        run: git pull --ff-only origin "${GITHUB_REF_NAME}"
+      - name: Validate worklife token
+        env:
+          WORKLIFE_REPO_TOKEN: ${{ secrets.WORKLIFE_REPO_TOKEN }}
+        run: |
+          if [ -z "${WORKLIFE_REPO_TOKEN}" ]; then
+            echo "::error title=Missing secret::WORKLIFE_REPO_TOKEN is required to read yai-worklife-agent self reports."
+            exit 1
+          fi
       - name: Checkout worklife self reports
         uses: actions/checkout@v7
-        continue-on-error: true
         with:
           repository: yenkwon/yai-worklife-agent
           path: worklife-agent
-          token: ${{ secrets.WORKLIFE_REPO_TOKEN || github.token }}
+          token: ${{ secrets.WORKLIFE_REPO_TOKEN }}
           sparse-checkout: |
             store/self-reports.json
           sparse-checkout-cone-mode: false
@@ -52,9 +68,10 @@ jobs:
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WORKLIFE_REPO_TOKEN: ${{ secrets.WORKLIFE_REPO_TOKEN }}
         run: |
           missing=0
-          for name in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REFRESH_TOKEN TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID; do
+          for name in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REFRESH_TOKEN TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID WORKLIFE_REPO_TOKEN; do
             if [ -z "${!name}" ]; then
               echo "::error title=Missing secret::$name is not set in repository Actions secrets."
               missing=1
@@ -80,6 +97,10 @@ jobs:
         run: |
           git config user.name "balance-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/history.json data/last-msg.json docs || true
-          git commit -m "report ${{ steps.mode.outputs.m }} $(date -u +%F)" || echo "nothing to commit"
-          git push || echo "push skipped"
+          git add data/history.json data/last-msg.json docs
+          if git diff --staged --quiet; then
+            echo "nothing to commit"
+          else
+            git commit -m "report ${{ steps.mode.outputs.m }} $(date -u +%F)"
+            git push
+          fi

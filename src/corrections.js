@@ -81,7 +81,10 @@ function normalizeSleepOverride(override) {
   for (const [rawDay, rawValue] of Object.entries(override)) {
     const day = normalizeDay(rawDay);
     const value = Number(rawValue);
-    if (!day || !Number.isFinite(value)) continue;
+    if (!day) throw new Error(`Invalid sleep override day: ${rawDay}`);
+    if (!Number.isFinite(value) || value < 0 || value > 24) {
+      throw new Error(`Invalid sleep override value for ${rawDay}: ${rawValue}`);
+    }
     normalized[day] = value;
   }
   return normalized;
@@ -94,14 +97,24 @@ function normalizeCategoryOverrides(overrides) {
       if (!item || !item.bucket) return null;
       const match = item.match || (item.title ? escapeRegExp(item.title) : null);
       if (!match) return null;
+      const pattern = String(match);
+      validateRegex(pattern);
       return {
-        match: String(match),
+        match: pattern,
         bucket: String(item.bucket).trim(),
         label: String(item.title || item.match || match).trim(),
         note: item.note ? String(item.note).trim() : '',
       };
     })
     .filter(Boolean);
+}
+
+function validateRegex(pattern) {
+  try {
+    new RegExp(pattern, 'i');
+  } catch (err) {
+    throw new Error(`Invalid correction match regex "${pattern}": ${err.message}`);
+  }
 }
 
 function normalizeDay(day) {

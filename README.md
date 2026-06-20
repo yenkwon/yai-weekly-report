@@ -43,7 +43,7 @@
 2. **Google Calendar**: OAuth refresh token (`calendar.readonly`) → `GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`.
 3. **따뜻한 한 줄(선택)**: `ANTHROPIC_API_KEY` (없으면 폴백 문구 자동). 모델은 `NOTE_MODEL`(기본 claude-sonnet-4-6).
 4. **자기보고(선택)**: `SELF_REPORT_SOURCE` + 어댑터 구현. 미설정 시 객관 인사이트만.
-5. **GitHub Pages**: `/public` 배포, `PAGES_BASE_URL` 변수 설정.
+5. **GitHub Pages**: `/docs` 배포, `PAGES_BASE_URL` 변수 설정.
 6. `Actions → Run workflow (send)` 로 즉시 테스트.
 
 ## 로컬 테스트

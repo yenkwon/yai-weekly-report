@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0"><title>주간 워라밸 보고</title>
 <style>
-:root{--bg:#f1efe9;--panel:#faf8f4;--ink:#24283c;--ink2:#5b6072;--line:#e2ddd2;--sleep:#9aa3bd;--work:#42548a;--commute:#cf7a52;--ministry:#7d6aa6;--life:#cdbd92;--alert:#cf5b48;--gold:#b9923a;--career:#2f8a78;--shadow:0 1px 2px rgba(40,40,60,.04),0 8px 30px rgba(40,40,60,.06)}
+:root{--bg:#f1efe9;--panel:#faf8f4;--ink:#24283c;--ink2:#5b6072;--line:#e2ddd2;--sleep:#9aa3bd;--work:#42548a;--commute:#cf7a52;--ministry:#7d6aa6;--life:#cdbd92;--growth:#2f8a78;--selfcare:#5b9aa0;--social:#b86f78;--exercise:#6b8e4e;--family:#aa874f;--alert:#cf5b48;--gold:#b9923a;--career:#2f8a78;--shadow:0 1px 2px rgba(40,40,60,.04),0 8px 30px rgba(40,40,60,.06)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-family:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
 .wrap{max-width:960px;margin:0 auto;padding:54px 24px 80px}.num{font-variant-numeric:tabular-nums}
@@ -31,6 +31,7 @@ section{margin-top:54px}.sec-head{display:flex;align-items:baseline;gap:14px;mar
 .seg{width:100%;transition:filter .15s}.seg:hover{filter:brightness(1.08)}
 .seg.sleep{background:repeating-linear-gradient(45deg,#9aa3bd,#9aa3bd 6px,#929bb6 6px,#929bb6 12px)}
 .seg.work{background:var(--work)}.seg.commute{background:var(--commute)}.seg.ministry{background:var(--ministry)}.seg.life{background:var(--life)}
+.seg.growth{background:var(--growth)}.seg.selfcare{background:var(--selfcare)}.seg.social{background:var(--social)}.seg.exercise{background:var(--exercise)}.seg.family{background:var(--family)}
 .daycol.peak .stack{box-shadow:0 0 0 2px var(--alert);border-color:var(--alert)}.daycol.rest .stack{box-shadow:0 0 0 2px var(--career);border-color:var(--career)}
 .dlabel{margin-top:10px;font-size:13px;font-weight:700}.daycol.peak .dlabel{color:var(--alert)}.daycol.rest .dlabel{color:var(--career)}
 .dcommit{font-size:11px;color:var(--ink2)}.tag{display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#fff;border-radius:6px;padding:1px 6px}.tag.r{background:var(--alert)}.tag.g{background:var(--career)}
@@ -113,7 +114,7 @@ const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'}
  // grid
  const grid=document.getElementById('grid'),tip=document.getElementById('tip');
  const ax=document.createElement('div');ax.className='hours';[0,6,12,18,24].forEach(h=>{const e=document.createElement('div');e.style.top=(h/24*100)+'%';e.textContent=h===24?'24':h;ax.appendChild(e);});grid.appendChild(ax);
- const lab={sleep:'수면',work:'본업',commute:'통근·운전',ministry:'사역·예배',life:'생활·여가'};
+ const lab={sleep:'수면',work:'본업',commute:'통근·운전',ministry:'사역·예배',life:'생활·여가',growth:'성장',selfcare:'자기돌봄',social:'관계',exercise:'운동',family:'가족'};
  for(const day of DAYS){const col=document.createElement('div');col.className='daycol'+(day===m.peakDay?' peak':'')+(m.sleepByDay[day]>=8?' rest':'');
   const st=document.createElement('div');st.className='stack';
   for(const [s,e,t] of m.dayBlocks[day]){const sg=document.createElement('div');sg.className='seg '+t;sg.style.flexBasis=((e-s)/24*100)+'%';
