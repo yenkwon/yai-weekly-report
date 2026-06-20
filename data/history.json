@@ -10,15 +10,15 @@
       "sleep": 46.7,
       "work": 46.3,
       "commute": 8.2,
-      "ministry": 11.5,
-      "worship": 5.5,
+      "ministry": 7.5,
+      "worship": 10,
       "career": 0,
       "growth": 0,
       "social": 0,
       "family": 0,
       "selfcare": 0,
       "exercise": 0,
-      "life": 49.8
+      "life": 49.3
     },
     "flags": {
       "satSleepover": true,
@@ -33,6 +33,6 @@
     "recoveryBalance": -5.3,
     "lateNightCount": 4,
     "loadStdev": 3.1,
-    "avgScore": 4.5
+    "avgScore": 3.7
   }
 ]
