@@ -41,6 +41,24 @@
       ]
     }
   },
+  "officeDaysByQuarter": {
+    "1": [
+      "tue",
+      "wed"
+    ],
+    "2": [
+      "thu",
+      "fri"
+    ],
+    "3": [
+      "tue",
+      "wed"
+    ],
+    "4": [
+      "thu",
+      "fri"
+    ]
+  },
   "commuteHours": {
     "daeyami_gwacheon": 0.75,
     "gwacheon_yangpyeong": 1.42,
@@ -60,9 +78,25 @@
     "thuWorshipHours": 3.17,
     "satSleepover": true,
     "sunChurch": {
-      "start": "10:00",
+      "wake": "08:30",
+      "prepStart": "09:00",
+      "churchMoveAndPraise": "10:00",
+      "worship": [
+        "11:00",
+        "14:00"
+      ],
+      "nextGenAndYouthEnd": "17:00",
+      "start": "09:00",
       "end": "17:00",
       "driveHomeHours": 1.5
+    },
+    "yjds": {
+      "match": "YJDS",
+      "name": "양평예수제자학교",
+      "leader": "안길함 목사님",
+      "role": "예배 반주",
+      "prepLeadHours": 1,
+      "prepTitle": "YJDS 준비·연습"
     }
   },
   "carTimeSplit": {

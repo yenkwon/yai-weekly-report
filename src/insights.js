@@ -116,11 +116,14 @@ function discovery(m, history) {
 function preview(nextEvents, cfg, catmap) {
   if (!nextEvents?.length) return { title:'다음 주 미리보기', detail:'다음 주 캘린더가 아직 비어 있어요.', flags:[] };
   const tz = cfg.routine.timezone;
+  const yjds = cfg.routine.fixedMinistry?.yjds;
+  const yjdsRe = yjds?.match ? new RegExp(yjds.match, 'i') : null;
   const dayMin = Object.fromEntries(DAYS.map(d=>[d,0]));
   const bucketOf = (ev)=>{ for(const k of catmap.keywordOverrides) if(new RegExp(k.match,'i').test(ev.title||'')) return k.bucket;
     for(const [n,b] of Object.entries(catmap.calendars)) if((ev.calendar||'').includes(n)) return b; return 'life'; };
   for (const ev of nextEvents){ const d=new Date(new Date(ev.start).toLocaleString('en-US',{timeZone:tz}));
-    const day=DAYS[(d.getDay()+6)%7]; const b=bucketOf(ev); const h=(new Date(ev.end)-new Date(ev.start))/3.6e6;
+    const day=DAYS[(d.getDay()+6)%7]; const b=bucketOf(ev); let h=(new Date(ev.end)-new Date(ev.start))/3.6e6;
+    if (yjdsRe?.test(ev.title || '') && !/준비|연습/i.test(ev.title || '')) h += yjds.prepLeadHours || 0;
     if(['ministry','worship'].includes(b)) dayMin[day]+=h; }
   const flags=[]; for(const d of DAYS) if(dayMin[d]>=8) flags.push(`${KO[d]}요일 사역 ${r1(dayMin[d])}h 예정 — 무거움`);
   const heaviest = DAYS.reduce((a,b)=>dayMin[b]>dayMin[a]?b:a);

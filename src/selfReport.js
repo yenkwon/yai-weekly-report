@@ -105,10 +105,10 @@ function scoreFromRaw(raw) {
 }
 
 function weekDateBounds(range = {}) {
-  const startDate = range.mondayLocal || dateKeyInTimezone(new Date(range.timeMin || Date.now()));
-  const endDate = range.timeMax
+  const startDate = range.startLocal || range.mondayLocal || dateKeyInTimezone(new Date(range.timeMin || Date.now()));
+  const endDate = range.endLocalExclusive || (range.timeMax
     ? dateKeyInTimezone(new Date(range.timeMax))
-    : addDays(startDate, 7);
+    : addDays(startDate, 7));
   return [startDate, endDate];
 }
 

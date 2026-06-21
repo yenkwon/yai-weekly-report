@@ -2,16 +2,28 @@
 // Auth: OAuth2 refresh token (GOOGLE_CLIENT_ID / SECRET / REFRESH_TOKEN env vars).
 import { google } from 'googleapis';
 
+const DAY_BY_JS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
 export function lastWeekRange(tz = 'Asia/Seoul', now = new Date()) {
-  // Returns [Mon 00:00, next Mon 00:00) of the *just-finished* week (Sun report → previous Mon–Sun)
+  // Returns the last fully closed Monday-Sunday report window.
   const todayLocal = dateKeyInTimeZone(now, tz);
-  const dow = weekdayIndex(todayLocal);           // Mon=0
-  const mondayLocal = addDays(todayLocal, -dow);
-  const nextMondayLocal = addDays(mondayLocal, 7);
+  const daysSinceMonday = weekdayIndexMonday(todayLocal);
+  const endLocal = addDays(todayLocal, -daysSinceMonday);
+  const startLocal = addDays(endLocal, -7);
+  const endLocalInclusive = addDays(endLocal, -1);
+  const week = reportWeekId(startLocal);
+  const dateByDay = dateByDayForRange(startLocal);
+
   return {
-    timeMin: zonedMidnight(mondayLocal, tz).toISOString(),
-    timeMax: zonedMidnight(nextMondayLocal, tz).toISOString(),
-    mondayLocal,
+    timeMin: zonedMidnight(startLocal, tz).toISOString(),
+    timeMax: zonedMidnight(endLocal, tz).toISOString(),
+    startLocal,
+    endLocalExclusive: endLocal,
+    endLocalInclusive,
+    mondayLocal: dateByDay.mon,
+    dateByDay,
+    week,
+    weekLabel: `${week} : ${formatMD(startLocal)} - ${formatMD(endLocalInclusive)}`,
   };
 }
 
@@ -60,7 +72,7 @@ function dateKeyInTimeZone(date, tz) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-function weekdayIndex(dateKey) {
+function weekdayIndexMonday(dateKey) {
   const [year, month, day] = dateKey.split('-').map(Number);
   return (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
 }
@@ -76,4 +88,43 @@ function zonedMidnight(dateKey, tz) {
     throw new Error(`Unsupported report timezone: ${tz}`);
   }
   return new Date(`${dateKey}T00:00:00+09:00`);
+}
+
+function dateByDayForRange(startLocal) {
+  const result = {};
+  for (let i = 0; i < 7; i++) {
+    const date = addDays(startLocal, i);
+    result[DAY_BY_JS[jsWeekdayIndex(date)]] = date;
+  }
+  return result;
+}
+
+function reportWeekId(startLocal) {
+  const start = dateUTC(startLocal);
+  const thursday = new Date(start);
+  thursday.setUTCDate(start.getUTCDate() + 3);
+  const year = thursday.getUTCFullYear();
+  const firstMonday = firstIsoMonday(year);
+  const week = Math.floor((start - firstMonday) / (7 * 864e5)) + 1;
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+function firstIsoMonday(year) {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  jan4.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7));
+  return jan4;
+}
+
+function dateUTC(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function jsWeekdayIndex(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+function formatMD(dateKey) {
+  return dateKey.slice(5).replace('-', '.');
 }

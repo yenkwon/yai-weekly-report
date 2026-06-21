@@ -12,16 +12,13 @@ import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from '
 const MODE = process.argv[2] || 'send';
 const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
 const PUBLISH_DIR = process.env.PUBLISH_DIR || 'docs';
-const isoWeek = (d=new Date()) => { const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
-  const day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3); const y=t.getUTCFullYear();
-  const w=Math.ceil(((t-new Date(Date.UTC(y,0,4)))/864e5+1)/7); return `${y}-W${String(w).padStart(2,'0')}`; };
 const nextRange = (r) => ({ timeMin:r.timeMax, timeMax:new Date(new Date(r.timeMax).getTime()+7*864e5).toISOString() });
 
 const cfg = loadConfig('./config');
-const week = isoWeek();
+const range = lastWeekRange(cfg.routine.timezone);
+const week = range.week;
 const corrections = loadCorrections(week);
 const correctedCfg = applyCorrectionsToConfig(cfg, corrections);
-const range = lastWeekRange(cfg.routine.timezone);
 const events = await fetchWeek(cfg.catmap, range);
 const nextEvents = await fetchWeek(cfg.catmap, nextRange(range)).catch(()=>[]);
 const selfReport = await getAdapter().fetchWeek(range).catch(()=>[]);
@@ -32,11 +29,17 @@ async function build(sleepOverride=null, sleepKnown=false) {
   const effectiveSleepOverride = mergeSleepOverrides(corrections.sleepOverride, sleepOverride);
   const sleepOverrideDays = Object.keys(effectiveSleepOverride || {});
   const effectiveSleepKnown = sleepOverrideDays.length === 7;
-  const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.mondayLocal), priorHistory);
+  const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.startLocal), priorHistory);
   const ins = analyze(m, priorHistory, selfReport, nextEvents, correctedCfg, correctedCfg.catmap);
   const note = await openingNote(m, ins, selfReport);
   const report = {
     week,
+    weekLabel: range.weekLabel,
+    period: {
+      startLocal: range.startLocal,
+      endLocalInclusive: range.endLocalInclusive,
+      endLocalExclusive: range.endLocalExclusive,
+    },
     sleepKnown: effectiveSleepKnown,
     sleepOverrideDays,
     sleepSource: sleepOverrideDays.length ? (sleepKnown ? 'reply' : 'correction') : 'estimate',

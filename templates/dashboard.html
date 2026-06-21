@@ -96,8 +96,10 @@ const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'}
  const fmt=h=>`${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 (function(){const m=DATA;if(!m){document.body.innerHTML='<p style="padding:40px">데이터 없음</p>';return;}
- const os=m.lenses.find(l=>l.key==='others_self');
- document.getElementById('eyebrow').textContent=`주간 워라밸 보고 · ${m.week}`;
+ const os=m.lenses.find(l=>l.key==='others_self'), label=m.weekLabel||m.week;
+ const md=iso=>iso?iso.slice(5).replace('-','.'):'';
+ document.title=`${label} 워라밸 보고`;
+ document.getElementById('eyebrow').textContent=`주간 워라밸 보고 · ${label}`;
  document.getElementById('note').textContent=m.openingNote.text;
  document.getElementById('head').innerHTML=m.restDays===0?`완전한 휴일 <span class="alert">${m.restDays}일</span>`+(m.zeroRestStreak>1?` · ${m.zeroRestStreak}주 연속`:''):`완전한 휴일 <span class="ok">${m.restDays}일</span>`;
  document.getElementById('lede').textContent=`가장 긴 날 ${KO[m.peakDay]} ${m.peakCommitted}h · 사역+예배 ${(m.buckets.ministry+m.buckets.worship).toFixed(1)}h · 수면 평균 ${m.sleepAvg}h · 타인 ${os.othersPct}% / 나 ${os.selfPct}%.`;
@@ -120,7 +122,7 @@ const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'}
   for(const [s,e,t] of m.dayBlocks[day]){const sg=document.createElement('div');sg.className='seg '+t;sg.style.flexBasis=((e-s)/24*100)+'%';
    sg.addEventListener('mousemove',ev=>{tip.style.opacity=1;tip.style.left=ev.clientX+'px';tip.style.top=ev.clientY+'px';tip.textContent=`${lab[t]} · ${fmt(s)}–${fmt(e)} (${(e-s).toFixed(1)}h)`;});
    sg.addEventListener('mouseleave',()=>tip.style.opacity=0);st.appendChild(sg);}
-  col.appendChild(st);const l=document.createElement('div');l.className='dlabel';l.textContent=KO[day];col.appendChild(l);
+  col.appendChild(st);const l=document.createElement('div');l.className='dlabel';l.textContent=`${KO[day]} ${md(m.dateByDay?.[day])}`;col.appendChild(l);
   const c=document.createElement('div');c.className='dcommit';c.textContent='구속 '+m.committedByDay[day]+'h';col.appendChild(c);
   if(day===m.peakDay){const t=document.createElement('div');t.className='tag r';t.textContent='가장 긴 날';col.appendChild(t);}
   else if(m.sleepByDay[day]>=8){const t=document.createElement('div');t.className='tag g';t.textContent='수면 보충';col.appendChild(t);}
@@ -149,6 +151,8 @@ const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'}
  const box=document.getElementById('checks'),ring=document.getElementById('ring'),txt=document.getElementById('ringtxt');let done=0;
  const upd=()=>{ring.style.setProperty('--p',done/m.recommendations.length*100);txt.textContent=`${done}/${m.recommendations.length}`;};
  m.recommendations.forEach(r=>{const lb=document.createElement('label');lb.className='check';lb.innerHTML=`<input type="checkbox"><div class="ct"><b>${r.title}</b><span>${r.detail}</span></div>`;lb.querySelector('input').addEventListener('change',e=>{done+=e.target.checked?1:-1;upd();});box.appendChild(lb);});upd();
- document.getElementById('foot').textContent=`본업 8–5 · 목 자차→과천→양평 · 토 양평 1박 · 일 양평 예배 기준 · 오프닝 노트 ${m.openingNote.source==='llm'?'(AI)':'(자동)'} · ${m.week}`;
+ const meta=m.routineMeta||{}, office=(meta.officeDays||[]).map(d=>KO[d]).join('·')||'목·금';
+ const q=meta.quarter?`${meta.quarter}분기 `:(meta.quarters?.length?`${meta.quarters.join('/')}분기 `:'');
+ document.getElementById('foot').textContent=`본업 8–5 · ${q}${office} 출근 · 토 양평 1박 · 주일 09–17 사역 · YJDS 1h 전 준비 · 오프닝 노트 ${m.openingNote.source==='llm'?'(AI)':'(자동)'} · ${label}`;
 })();
 </script></body></html>

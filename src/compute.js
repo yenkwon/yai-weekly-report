@@ -3,6 +3,8 @@
 import fs from 'node:fs';
 
 const DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+const WEEKDAYS = ['mon','tue','wed','thu','fri'];
+const DAY_BY_JS = ['sun','mon','tue','wed','thu','fri','sat'];
 const hm = (s) => { const [h,m] = s.split(':').map(Number); return h + m/60; };
 
 export function loadConfig(dir = './config') {
@@ -12,21 +14,200 @@ export function loadConfig(dir = './config') {
   };
 }
 
+function routineForPeriod(routine, periodStartLocal) {
+  if (!periodStartLocal || !routine.officeDaysByQuarter) return routine;
+
+  const wfhTemplate = Object.values(routine.weekdays).find((day) => day.mode === 'wfh') || routine.weekdays.mon;
+  const officeTemplate = routine.weekdays.fri
+    || Object.values(routine.weekdays).find((day) => String(day.mode || '').startsWith('office'))
+    || wfhTemplate;
+  const thuOfficeTemplate = routine.weekdays.thu || officeTemplate;
+  const weekdays = {};
+  const dateByDay = dateByDayForPeriod(periodStartLocal);
+  const quarters = new Set();
+  const actualOfficeDays = [];
+
+  for (const day of WEEKDAYS) {
+    const q = quarterFromDate(dateByDay[day] || periodStartLocal);
+    quarters.add(q);
+    const officeDays = new Set(routine.officeDaysByQuarter[String(q)] || []);
+    if (officeDays.has(day)) {
+      const source = day === 'thu' ? thuOfficeTemplate : officeTemplate;
+      weekdays[day] = { ...source, mode: String(source.mode || 'office').startsWith('office') ? source.mode : 'office' };
+      actualOfficeDays.push(day);
+    } else {
+      weekdays[day] = { ...wfhTemplate, mode: 'wfh' };
+    }
+  }
+
+  return {
+    ...routine,
+    weekdays,
+    _quarter: quarters.size === 1 ? [...quarters][0] : null,
+    _quarters: [...quarters],
+    _officeDays: actualOfficeDays,
+  };
+}
+
+function quarterFromDate(dateKey) {
+  const month = Number(String(dateKey).slice(5, 7));
+  return Math.floor((month - 1) / 3) + 1;
+}
+
+function isOfficeDay(day) {
+  return String(day?.mode || '').startsWith('office');
+}
+
 // Fixed spine (work, commute, sleep) is template-driven; it barely varies week to week.
 function spine(routine) {
   const work = {}, commute = {}, sleep = { ...routine.sleepDefault };
-  const C = routine.commuteHours;
   for (const d of DAYS) {
     const wd = routine.weekdays[d];
     work[d] = wd ? hm(wd.work[1]) - hm(wd.work[0]) : 0;
-    commute[d] = 0;
+    commute[d] = commuteHoursForDay(d, routine);
   }
-  // commute per the known geography
-  commute.thu = C.daeyami_gwacheon + C.gwacheon_yangpyeong + C.yangpyeong_gunpo;
-  commute.fri = C.daeyami_gwacheon * 2;
-  commute.sat = C.gunpo_yangpyeong;       // out only (sleeps over)
-  commute.sun = C.yangpyeong_gunpo;       // back only
   return { work, commute, sleep };
+}
+
+function commuteHoursForDay(day, routine) {
+  const C = routine.commuteHours;
+  const W = routine.weekdays;
+  const hasThuWorship = (routine.fixedMinistry?.thuWorshipHours || 0) > 0;
+
+  if (day === 'sat') return routine.fixedMinistry?.satSleepover ? C.gunpo_yangpyeong : 0;
+  if (day === 'sun') return routine.fixedMinistry?.satSleepover
+    ? (routine.fixedMinistry?.sunChurch?.driveHomeHours ?? C.yangpyeong_gunpo)
+    : 0;
+  if (day === 'thu' && hasThuWorship) {
+    return isOfficeDay(W.thu)
+      ? C.daeyami_gwacheon + C.gwacheon_yangpyeong + C.yangpyeong_gunpo
+      : C.gunpo_yangpyeong + C.yangpyeong_gunpo;
+  }
+  if (isOfficeDay(W[day])) return C.daeyami_gwacheon * 2;
+  return 0;
+}
+
+function buildFixedBlocks(routine, sp) {
+  const C = routine.commuteHours;
+  const W = routine.weekdays;
+  const fixed = Object.fromEntries(DAYS.map((day) => [day, [['sleep', 0, sp.sleep[day]]]]));
+
+  for (const day of WEEKDAYS) {
+    const wd = W[day];
+    if (!wd?.work) continue;
+    fixed[day].push(['work', hm(wd.work[0]), hm(wd.work[1])]);
+    addWeekdayCommuteBlocks(fixed[day], day, routine);
+  }
+
+  if (routine.fixedMinistry?.satSleepover) {
+    fixed.sat.push(['commute', 7, 7 + C.gunpo_yangpyeong]);
+    const sc = routine.fixedMinistry.sunChurch;
+    fixed.sun.push(['commute', hm(sc.end), hm(sc.end) + (sc.driveHomeHours ?? C.yangpyeong_gunpo)]);
+  }
+
+  return fixed;
+}
+
+function addWeekdayCommuteBlocks(blocks, day, routine) {
+  const C = routine.commuteHours;
+  const W = routine.weekdays;
+  const wd = W[day];
+  const workEnd = hm(wd.work[1]);
+  const hasThuWorship = day === 'thu' && (routine.fixedMinistry?.thuWorshipHours || 0) > 0;
+
+  if (hasThuWorship) {
+    if (isOfficeDay(wd)) {
+      if (wd.leaveHome) blocks.push(['commute', hm(wd.leaveHome), hm(wd.leaveHome) + C.daeyami_gwacheon]);
+      blocks.push(['commute', workEnd, workEnd + C.gwacheon_yangpyeong]);
+    } else {
+      blocks.push(['commute', workEnd, workEnd + C.gunpo_yangpyeong]);
+    }
+    const returnEnd = routine.fixedMinistry.thuReturnEnd ? hm(routine.fixedMinistry.thuReturnEnd) : 23.25;
+    blocks.push(['commute', returnEnd - C.yangpyeong_gunpo, returnEnd]);
+    return;
+  }
+
+  if (isOfficeDay(wd)) {
+    if (wd.leaveHome) blocks.push(['commute', hm(wd.leaveHome), hm(wd.leaveHome) + C.daeyami_gwacheon]);
+    blocks.push(['commute', workEnd, workEnd + C.daeyami_gwacheon]);
+  }
+}
+
+function expandRoutineEvents(events, routine) {
+  const yjds = routine.fixedMinistry?.yjds;
+  if (!yjds?.match || !yjds.prepLeadHours) return events;
+
+  const re = new RegExp(yjds.match, 'i');
+  const additions = [];
+  for (const ev of events) {
+    const title = ev.title || '';
+    if (!re.test(title) || /준비|연습/i.test(title)) continue;
+
+    const start = new Date(ev.start);
+    const prepStart = new Date(start.getTime() - yjds.prepLeadHours * 3.6e6);
+    if (hasOverlappingYjdsPrep(events, prepStart, start, ev, re)) continue;
+
+    additions.push({
+      title: yjds.prepTitle || 'YJDS 준비·연습',
+      start: prepStart.toISOString(),
+      end: ev.start,
+      calendar: ev.calendar || 'Ministry Support',
+      synthetic: true,
+    });
+  }
+  return additions.length ? [...events, ...additions] : events;
+}
+
+function hasOverlappingYjdsPrep(events, start, end, source, re) {
+  return events.some((ev) => {
+    if (ev === source || !re.test(ev.title || '')) return false;
+    return new Date(ev.start) < end && new Date(ev.end) > start;
+  });
+}
+
+function dateByDayForPeriod(periodStartLocal) {
+  if (!periodStartLocal) return {};
+  if (typeof periodStartLocal === 'object') return periodStartLocal;
+
+  const result = {};
+  for (let i = 0; i < 7; i++) {
+    const date = addDays(String(periodStartLocal).slice(0, 10), i);
+    result[DAY_BY_JS[jsDay(date)]] = date;
+  }
+  return result;
+}
+
+function buildRoutineMeta(routine) {
+  const sc = routine.fixedMinistry?.sunChurch || {};
+  return {
+    quarter: routine._quarter || null,
+    quarters: routine._quarters || null,
+    officeDays: routine._officeDays || WEEKDAYS.filter((day) => isOfficeDay(routine.weekdays[day])),
+    sunday: {
+      wake: sc.wake,
+      prepStart: sc.prepStart || sc.start,
+      start: sc.start,
+      end: sc.end,
+      worship: sc.worship,
+    },
+    yjds: routine.fixedMinistry?.yjds ? {
+      name: routine.fixedMinistry.yjds.name,
+      leader: routine.fixedMinistry.yjds.leader,
+      role: routine.fixedMinistry.yjds.role,
+      prepLeadHours: routine.fixedMinistry.yjds.prepLeadHours,
+    } : null,
+  };
+}
+
+function addDays(dateKey, days) {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function jsDay(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
 // Map a single event to a bucket using calendar name, then keyword overrides.
@@ -46,17 +227,19 @@ const dayKey = (iso, tz) => {
 const durH = (ev) => Math.max(0, (new Date(ev.end) - new Date(ev.start)) / 3.6e6);
 
 // Build the full weekly model.
-export function buildWeek(events, cfg, sleepOverride = null, weekMondayISO = null) {
-  const { routine, catmap } = cfg;
+export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = null) {
+  const catmap = cfg.catmap;
+  const routine = routineForPeriod(cfg.routine, periodStartLocal);
   const tz = routine.timezone;
   const sp = spine(routine);
+  const expandedEvents = expandRoutineEvents(events, routine);
   if (sleepOverride) for (const d of DAYS)
     if (sleepOverride[d] != null) sp.sleep[d] = sleepOverride[d];
 
   // Variable buckets come from the actual calendar.
   const perDay = Object.fromEntries(DAYS.map(d => [d, {}]));
   const special = [];
-  for (const ev of events) {
+  for (const ev of expandedEvents) {
     const d = dayKey(ev.start, tz);
     const b = bucketOf(ev, catmap);
     const h = durH(ev);
@@ -96,29 +279,15 @@ export function buildWeek(events, cfg, sleepOverride = null, weekMondayISO = nul
   // ---- per-day clock-accurate blocks for the grid ----
   const localH = (iso) => { const d = new Date(new Date(iso).toLocaleString('en-US',{timeZone:tz})); return d.getHours()+d.getMinutes()/60; };
   const evByDay = Object.fromEntries(DAYS.map(d=>[d,[]]));
-  for (const ev of events) { const d = dayKey(ev.start, tz); const b = bucketOf(ev, catmap);
+  for (const ev of expandedEvents) { const d = dayKey(ev.start, tz); const b = bucketOf(ev, catmap);
     if (['ministry','worship','career','social','growth','selfcare'].includes(b))
       evByDay[d].push([localH(ev.start), localH(ev.end), (b==='worship'?'ministry':b==='career'?'work':b)]); }
-  const C = routine.commuteHours, W = routine.weekdays;
   // mirror the injected spine ministry into the grid when those events aren't logged
   if (evByDay.sun.filter(b=>b[2]==='ministry').length === 0) {
     const s = routine.fixedMinistry.sunChurch; evByDay.sun.push([hm(s.start), hm(s.end), 'ministry']); }
   if (evByDay.thu.filter(b=>b[2]==='ministry').length === 0)
     evByDay.thu.push([18.58, 18.58 + routine.fixedMinistry.thuWorshipHours, 'ministry']);
-  const fixed = {
-    mon:[['sleep',0,sp.sleep.mon],['work',hm(W.mon.work[0]),hm(W.mon.work[1])]],
-    tue:[['sleep',0,sp.sleep.tue],['work',hm(W.tue.work[0]),hm(W.tue.work[1])]],
-    wed:[['sleep',0,sp.sleep.wed],['work',hm(W.wed.work[0]),hm(W.wed.work[1])]],
-    thu:[['sleep',0,sp.sleep.thu],['commute',hm(W.thu.leaveHome),hm(W.thu.leaveHome)+C.daeyami_gwacheon],
-         ['work',hm(W.thu.work[0]),hm(W.thu.work[1])],
-         ['commute',hm(W.thu.work[1]),hm(W.thu.work[1])+C.gwacheon_yangpyeong],
-         ['commute',23.25-C.yangpyeong_gunpo,23.25]],
-    fri:[['sleep',0,sp.sleep.fri],['commute',hm(W.fri.leaveHome),hm(W.fri.leaveHome)+C.daeyami_gwacheon],
-         ['work',hm(W.fri.work[0]),hm(W.fri.work[1])],
-         ['commute',hm(W.fri.work[1]),hm(W.fri.work[1])+C.daeyami_gwacheon]],
-    sat:[['sleep',0,sp.sleep.sat],['commute',7,7+C.gunpo_yangpyeong]],
-    sun:[['sleep',0,sp.sleep.sun],['commute',17,17+C.yangpyeong_gunpo]],
-  };
+  const fixed = buildFixedBlocks(routine, sp);
   const dayBlocks = {};
   for (const d of DAYS) {
     const paint = new Array(288).fill('life');           // 5-min slots
@@ -134,12 +303,10 @@ export function buildWeek(events, cfg, sleepOverride = null, weekMondayISO = nul
 
   // extra signals for the lenses
   const lh = (iso) => { const d = new Date(new Date(iso).toLocaleString('en-US',{timeZone:tz})); return d.getHours()+d.getMinutes()/60; };
-  const lateNightCount = events.filter(e => lh(e.start) >= 22).length;
-  const latestEndH = events.length ? Math.max(...events.map(e => lh(e.end))) : null;
+  const lateNightCount = expandedEvents.filter(e => lh(e.start) >= 22).length;
+  const latestEndH = expandedEvents.length ? Math.max(...expandedEvents.map(e => lh(e.end))) : null;
   const fmtHM = (h) => h==null ? null : `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
-  const dateByDay = {};
-  if (weekMondayISO) { const base = new Date(weekMondayISO.slice(0,10) + 'T12:00:00Z');
-    DAYS.forEach((d,i)=>{ const x=new Date(base); x.setUTCDate(base.getUTCDate()+i); dateByDay[d]=x.toISOString().slice(0,10); }); }
+  const dateByDay = dateByDayForPeriod(periodStartLocal);
 
   const metrics = {
     committedByDay: committed,
@@ -153,7 +320,7 @@ export function buildWeek(events, cfg, sleepOverride = null, weekMondayISO = nul
     sleepMin: +Math.min(...sleepVals).toFixed(2),
     drivingHours: +DAYS.reduce((a,d)=>a+sp.commute[d],0).toFixed(1),
     dayBlocks,
-    spotlight: buildSpotlight(DAYS.reduce((a,b)=>committed[b]>committed[a]?b:a), dayBlocks, events, tz),
+    spotlight: buildSpotlight(DAYS.reduce((a,b)=>committed[b]>committed[a]?b:a), dayBlocks, expandedEvents, tz),
     flags: {
       satSleepover: !!routine.fixedMinistry.satSleepover,
       sundaySleep7: sp.sleep.sun >= 7,
@@ -165,6 +332,7 @@ export function buildWeek(events, cfg, sleepOverride = null, weekMondayISO = nul
     _latestEnd: fmtHM(latestEndH),
     dateByDay,
     special,
+    routineMeta: buildRoutineMeta(routine),
   };
   return metrics;
 }

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 const KO = { mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일' };
+const reportLabel = (r) => r.weekLabel || r.week;
 
 export function summaryText(r, link) {
   const minTot = (r.buckets.ministry + r.buckets.worship).toFixed(1);
@@ -7,7 +8,7 @@ export function summaryText(r, link) {
   const correctionLine = correctionSummary(r.corrections);
   const lines = [
     r.openingNote.text, '',
-    `🗓️ *${r.week} 워라밸 보고*`,
+    `🗓️ *${reportLabel(r)} 워라밸 보고*`,
     `• ${r.discovery.title}`,
     `• 완전한 휴일 *${r.restDays}일*${r.zeroRestStreak>1?` (${r.zeroRestStreak}주 연속)`:''} · 가장 긴 날 ${KO[r.peakDay]} ${r.peakCommitted}h`,
     `• 사역+예배 ${minTot}h · 타인 ${r.lenses.find(l=>l.key==='others_self').othersPct}% / 나 ${r.lenses.find(l=>l.key==='others_self').selfPct}%`,
