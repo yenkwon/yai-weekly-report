@@ -1,8 +1,8 @@
 name: weekly-balance-report
 on:
   schedule:
-    - cron: '0 20 * * 0'    # Mon 05:00 KST  → send report + ask for sleep
-    - cron: '30 12 * * 1'   # Mon 21:30 KST  → reconcile sleep reply
+    - cron: '0 9 * * 0'     # Sun 18:00 KST  → send report + ask for corrections
+    - cron: '0 23 * * 0'    # Mon 08:00 KST  → resend if corrections or sleep reply exist
   workflow_dispatch:
     inputs:
       mode: { description: 'send | reconcile', required: true, default: 'send' }
@@ -59,7 +59,7 @@ jobs:
         id: mode
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "${{ github.event.schedule }}" = "0 20 * * 0" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
+            if [ "${{ github.event.schedule }}" = "0 9 * * 0" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
           else echo "m=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT; fi
       - name: Validate required secrets
         env:

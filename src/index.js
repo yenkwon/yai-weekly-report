@@ -63,10 +63,21 @@ if (MODE === 'send') {
   fs.writeFileSync('./data/last-msg.json', JSON.stringify({ week, msgId }));
   console.log('sent', { week, note: report.openingNote.source, peak: report.peakDay });
 } else {
-  const { msgId } = JSON.parse(fs.readFileSync('./data/last-msg.json','utf8'));
-  const sleep = await readSleepReply(msgId);
-  if (!sleep) { console.log('no sleep reply'); process.exit(0); }
-  const { report, link } = await build(sleep, true);
-  await sendText(`💤 수면 반영 완료 ✅ (평균 ${report.sleepAvg}h)\n📊 갱신 → ${link}`);
-  console.log('reconciled', sleep);
+  const { msgId } = fs.existsSync('./data/last-msg.json')
+    ? JSON.parse(fs.readFileSync('./data/last-msg.json','utf8'))
+    : {};
+  const sleep = msgId ? await readSleepReply(msgId) : null;
+  if (!sleep && !corrections.present) {
+    console.log('no sleep reply or corrections');
+    process.exit(0);
+  }
+  const { report, link } = await build(sleep, Boolean(sleep));
+  await sendText(`${reconcileLabel({ sleep, corrections })} (${report.weekLabel || report.week})\n평균 수면 ${report.sleepAvg}h\n대시보드 갱신 → ${link}`);
+  console.log('reconciled', { sleep, corrections: corrections.present });
+}
+
+function reconcileLabel({ sleep, corrections }) {
+  if (sleep && corrections.present) return '💤 수면·수정사항 반영 완료 ✅';
+  if (sleep) return '💤 수면 반영 완료 ✅';
+  return '🛠️ 수정사항 반영 완료 ✅';
 }
