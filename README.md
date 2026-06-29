@@ -5,7 +5,7 @@
 
 ## 흐름
 ```
-주일 18:00 KST ─ send ─▶ 지난주 캘린더 fetch + 다음주 미리보기 fetch + 자기보고 fetch
+주일 18:00 KST ─ send ─▶ 해당 주 월~일 캘린더 fetch + 다음주 미리보기 fetch + 자기보고 fetch
                        → 168h 계산(루틴 추정 수면) → 5렌즈 인사이트 + 이례치 + 미리보기
                        → 따뜻한 한 줄(Claude API, 실패시 폴백) → Pages 갱신
                        → 텔레그램: 한 줄 + 요약 + 링크 + "이번 주 수면은?"(force_reply)

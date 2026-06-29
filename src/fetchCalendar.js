@@ -5,10 +5,13 @@ import { google } from 'googleapis';
 const DAY_BY_JS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 export function lastWeekRange(tz = 'Asia/Seoul', now = new Date()) {
-  // Returns the last fully closed Monday-Sunday report window.
+  // Sunday evening sends report the current Monday-Sunday window; later runs use
+  // the last fully closed Monday-Sunday window for corrections/re-sends.
   const todayLocal = dateKeyInTimeZone(now, tz);
   const daysSinceMonday = weekdayIndexMonday(todayLocal);
-  const endLocal = addDays(todayLocal, -daysSinceMonday);
+  const endLocal = daysSinceMonday === 6
+    ? addDays(todayLocal, 1)
+    : addDays(todayLocal, -daysSinceMonday);
   const startLocal = addDays(endLocal, -7);
   const endLocalInclusive = addDays(endLocal, -1);
   const week = reportWeekId(startLocal);
