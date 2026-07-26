@@ -178,5 +178,41 @@
     "lateNightCount": 1,
     "loadStdev": 3.1,
     "avgScore": null
+  },
+  {
+    "week": "2026-W30",
+    "peakCommitted": 18.8,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 9,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 46.3,
+      "commute": 9,
+      "ministry": 12,
+      "worship": 12.5,
+      "career": 4.5,
+      "growth": 0,
+      "social": 3.5,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 33.4
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 88,
+    "selfPct": 12,
+    "recoveryWeekly": -5.3,
+    "recoveryBalance": -30.3,
+    "lateNightCount": 3,
+    "loadStdev": 4,
+    "avgScore": null
   }
 ]
