@@ -40,6 +40,8 @@
 | `src/selfReport.js` | 자기보고 어댑터(Null/Obsidian/Telegram/Mock) |
 | `src/fetchCalendar.js` | Google Calendar에서 지난주·다음주 이벤트 |
 | `src/renderReport.js` | 텔레그램 요약 + 대시보드 HTML 주입 + history 적립 |
+
+캘린더에 넣지 않는 반복 일정은 `yai-worklife-agent/config/non-calendar-routines.json`을 단일 원천으로 사용합니다. 로컬에서는 인접 저장소를 자동 탐색하고, GitHub Actions에서는 `WORKLIFE_ROUTINES_PATH`로 체크아웃한 파일을 읽어 주간 시간 집계와 요약에 반영합니다.
 | `src/index.js` | send / reconcile 오케스트레이터 |
 | `templates/dashboard.html` | 데이터 주입형 인터랙티브 대시보드 |
 | `config/*.json` | 루틴·통근·회복목표 / 카테고리 매핑 |

@@ -11,7 +11,21 @@ export function loadConfig(dir = './config') {
   return {
     routine: JSON.parse(fs.readFileSync(`${dir}/routine.config.json`, 'utf8')),
     catmap:  JSON.parse(fs.readFileSync(`${dir}/category-map.json`, 'utf8')),
+    nonCalendarRoutines: loadNonCalendarRoutines(dir),
   };
+}
+
+function loadNonCalendarRoutines(dir) {
+  const candidates = [
+    process.env.WORKLIFE_ROUTINES_PATH,
+    '../yai-worklife-agent/config/non-calendar-routines.json',
+    'worklife-agent/config/non-calendar-routines.json',
+    `${dir}/non-calendar-routines.json`,
+  ].filter(Boolean);
+  const path = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!path) return [];
+  const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+  return Array.isArray(data.routines) ? data.routines : [];
 }
 
 function routineForPeriod(routine, periodStartLocal) {
@@ -233,6 +247,13 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   const tz = routine.timezone;
   const sp = spine(routine);
   const expandedEvents = expandRoutineEvents(events, routine);
+  const dateByDay = dateByDayForPeriod(periodStartLocal);
+  const nonCalendarOccurrences = expandNonCalendarRoutines(
+    cfg.nonCalendarRoutines || [],
+    dateByDay,
+    expandedEvents,
+    tz,
+  );
   if (sleepOverride) for (const d of DAYS)
     if (sleepOverride[d] != null) sp.sleep[d] = sleepOverride[d];
 
@@ -245,6 +266,11 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
     const h = durH(ev);
     perDay[d][b] = (perDay[d][b] || 0) + h;
     if (h >= 5) special.push({ day: d, title: ev.title, hours: +h.toFixed(1) });
+  }
+  for (const occurrence of nonCalendarOccurrences) {
+    if (!occurrence.durationMinutes) continue;
+    const bucket = catmap.buckets.includes(occurrence.category) ? occurrence.category : 'life';
+    perDay[occurrence.day][bucket] = (perDay[occurrence.day][bucket] || 0) + occurrence.durationMinutes / 60;
   }
 
   // Sunday church is near-certain but usually unlogged → inject if missing.
@@ -306,8 +332,6 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   const lateNightCount = expandedEvents.filter(e => lh(e.start) >= 22).length;
   const latestEndH = expandedEvents.length ? Math.max(...expandedEvents.map(e => lh(e.end))) : null;
   const fmtHM = (h) => h==null ? null : `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
-  const dateByDay = dateByDayForPeriod(periodStartLocal);
-
   const metrics = {
     committedByDay: committed,
     ministryByDay: ministryDay,
@@ -332,9 +356,69 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
     _latestEnd: fmtHM(latestEndH),
     dateByDay,
     special,
+    nonCalendarRoutines: summarizeNonCalendarRoutines(nonCalendarOccurrences),
     routineMeta: buildRoutineMeta(routine),
   };
   return metrics;
+}
+
+function expandNonCalendarRoutines(routines, dateByDay, events, tz) {
+  const occurrences = [];
+  for (const [day, date] of Object.entries(dateByDay)) {
+    const dayEvents = events.filter((event) => dayKey(event.start, tz) === day);
+    for (const routine of routines) {
+      if (!routineApplies(routine, date, day, dayEvents)) continue;
+      if (dayEvents.some((event) => titleKey(event.title) === titleKey(routine.title))) continue;
+      const duration = Number(routine.duration_minutes);
+      occurrences.push({
+        id: routine.id,
+        title: routine.report_title || routine.title,
+        date,
+        day,
+        category: routine.category || 'other',
+        durationMinutes: Number.isFinite(duration) && duration > 0 ? duration : null,
+        conditional: Boolean(routine.when_event_matches),
+      });
+    }
+  }
+  return occurrences;
+}
+
+function routineApplies(routine, date, day, events) {
+  if (routine.active === false) return false;
+  if (routine.active_from && date < routine.active_from) return false;
+  if (routine.active_until && date > routine.active_until) return false;
+  if (Array.isArray(routine.days) && !routine.days.includes(day)) return false;
+  if (!routine.when_event_matches) return true;
+  const pattern = new RegExp(routine.when_event_matches, 'i');
+  return events.some((event) => pattern.test(String(event.title || '')));
+}
+
+function summarizeNonCalendarRoutines(occurrences) {
+  const items = new Map();
+  for (const occurrence of occurrences) {
+    const item = items.get(occurrence.id) || {
+      id: occurrence.id,
+      title: occurrence.title,
+      category: occurrence.category,
+      occurrences: 0,
+      minutes: 0,
+      days: [],
+    };
+    item.occurrences += 1;
+    item.minutes += occurrence.durationMinutes || 0;
+    item.days.push(occurrence.date);
+    items.set(occurrence.id, item);
+  }
+  const list = [...items.values()];
+  return {
+    totalMinutes: list.reduce((sum, item) => sum + item.minutes, 0),
+    items: list,
+  };
+}
+
+function titleKey(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 // Deltas vs last week + streaks across history.

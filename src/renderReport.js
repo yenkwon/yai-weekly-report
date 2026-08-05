@@ -6,12 +6,14 @@ export function summaryText(r, link) {
   const minTot = (r.buckets.ministry + r.buckets.worship).toFixed(1);
   const rd = r.lenses.find(l=>l.key==='recovery_debt');
   const correctionLine = correctionSummary(r.corrections);
+  const routineLine = nonCalendarRoutineSummary(r.nonCalendarRoutines);
   const lines = [
     r.openingNote.text, '',
     `🗓️ *${reportLabel(r)} 워라밸 보고*`,
     `• ${r.discovery.title}`,
     `• 완전한 휴일 *${r.restDays}일*${r.zeroRestStreak>1?` (${r.zeroRestStreak}주 연속)`:''} · 가장 긴 날 ${KO[r.peakDay]} ${r.peakCommitted}h`,
     `• 사역+예배 ${minTot}h · 타인 ${r.lenses.find(l=>l.key==='others_self').othersPct}% / 나 ${r.lenses.find(l=>l.key==='others_self').selfPct}%`,
+    ...(routineLine ? [routineLine] : []),
     `• 수면 평균 *${r.sleepAvg}h*${r.sleepKnown?' ✅실측':' (추정)'} · 회복부채 ${rd.balance}h`,
     `• ${r.preview.title}: ${r.preview.flags.length?r.preview.flags[0]:'큰 충돌 없음'}`,
     '', `📊 대시보드 → ${link}`,
@@ -19,6 +21,15 @@ export function summaryText(r, link) {
   if (correctionLine) lines.splice(lines.length - 2, 0, `• ${correctionLine}`);
   if (!r.sleepKnown) lines.push('', '💤 실제 수면이 달랐다면 *답장으로 숫자*만 (예: 6.5 / "목5 금5.5").');
   return lines.join('\n');
+}
+
+function nonCalendarRoutineSummary(summary) {
+  if (!summary?.items?.length) return '';
+  const items = summary.items.map((item) => {
+    const time = item.minutes > 0 ? `·${(item.minutes / 60).toFixed(1)}h` : '·시간 미정';
+    return `${item.title} ${item.occurrences}회${time}`;
+  });
+  return `• 캘린더 밖 루틴: ${items.join(', ')}`;
 }
 
 function correctionSummary(corrections) {

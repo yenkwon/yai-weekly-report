@@ -152,7 +152,8 @@ const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'}
  const upd=()=>{ring.style.setProperty('--p',done/m.recommendations.length*100);txt.textContent=`${done}/${m.recommendations.length}`;};
  m.recommendations.forEach(r=>{const lb=document.createElement('label');lb.className='check';lb.innerHTML=`<input type="checkbox"><div class="ct"><b>${r.title}</b><span>${r.detail}</span></div>`;lb.querySelector('input').addEventListener('change',e=>{done+=e.target.checked?1:-1;upd();});box.appendChild(lb);});upd();
  const meta=m.routineMeta||{}, office=(meta.officeDays||[]).map(d=>KO[d]).join('·')||'목·금';
+ const routineMinutes=m.nonCalendarRoutines?.totalMinutes||0, routineText=routineMinutes?` · 캘린더 밖 루틴 ${(routineMinutes/60).toFixed(1)}h`:'';
  const q=meta.quarter?`${meta.quarter}분기 `:(meta.quarters?.length?`${meta.quarters.join('/')}분기 `:'');
- document.getElementById('foot').textContent=`본업 8–5 · ${q}${office} 출근 · 토 양평 1박 · 주일 09–17 사역 · YJDS 1h 전 준비 · 오프닝 노트 ${m.openingNote.source==='llm'?'(AI)':'(자동)'} · ${label}`;
+ document.getElementById('foot').textContent=`본업 8–5 · ${q}${office} 출근 · 토 양평 1박 · 주일 09–17 사역 · YJDS 1h 전 준비${routineText} · 오프닝 노트 ${m.openingNote.source==='llm'?'(AI)':'(자동)'} · ${label}`;
 })();
 </script></body></html>

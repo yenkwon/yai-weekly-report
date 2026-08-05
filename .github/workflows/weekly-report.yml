@@ -40,6 +40,7 @@ jobs:
           token: ${{ secrets.WORKLIFE_REPO_TOKEN }}
           sparse-checkout: |
             store/self-reports.json
+            config/non-calendar-routines.json
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v6
         with: { node-version: '24' }
@@ -90,6 +91,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SELF_REPORT_SOURCE: telegram
           WORKLIFE_SELF_REPORTS_PATH: worklife-agent/store/self-reports.json
+          WORKLIFE_ROUTINES_PATH: worklife-agent/config/non-calendar-routines.json
           PUBLISH_DIR: docs
           PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
         run: node src/index.js ${{ steps.mode.outputs.m }}
