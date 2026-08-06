@@ -217,7 +217,7 @@
   },
   {
     "week": "2026-W31",
-    "peakCommitted": 14.8,
+    "peakCommitted": 25.2,
     "restDays": 0,
     "sleepAvg": 6.68,
     "sleepMin": 5.42,
@@ -226,7 +226,7 @@
       "sleep": 46.7,
       "work": 46.3,
       "commute": 9,
-      "ministry": 8.5,
+      "ministry": 32.5,
       "worship": 2.5,
       "career": 0,
       "growth": 0,
@@ -234,7 +234,7 @@
       "family": 0,
       "selfcare": 0,
       "exercise": 0,
-      "life": 54.9
+      "life": 30.9
     },
     "flags": {
       "satSleepover": true,
@@ -243,12 +243,19 @@
       "selfcareZero": true,
       "restZero": true
     },
-    "othersPct": 78,
-    "selfPct": 23,
-    "recoveryWeekly": -5.3,
-    "recoveryBalance": -35.6,
+    "othersPct": 90,
+    "selfPct": 10,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
     "lateNightCount": 1,
-    "loadStdev": 3.7,
-    "avgScore": null
+    "loadStdev": 7,
+    "avgScore": null,
+    "insightTopics": [
+      "peak",
+      "청소년/청년 수련회",
+      "청소년/청년 수련회"
+    ],
+    "integratedInsight": "밀도는 높았지만 밤은 지켰다"
   }
 ]
