@@ -41,7 +41,7 @@ const el=(id)=>document.getElementById(id),card=(html,cls='')=>`<article class="
  el('stats').innerHTML=stats.map(([v,l,u])=>`<div class="stat"><strong>${fmt(v)}${u}</strong><span>${l}</span></div>`).join('');
  el('changes').innerHTML=(m.changes||[]).map((x)=>card(`<h3>${x.title}</h3><p>${x.detail}</p>`,`change ${x.tone}`)).join('');
  el('eventNote').textContent=m.notableEvents?.note||'';const events=m.notableEvents?.items||[];
- el('events').innerHTML=events.length?events.map((x)=>card(`<h3>${x.title}</h3><p>${KO[x.day]||''}${x.durationHours?` · ${x.durationHours}h`:x.allDay?' · 종일':''}</p><div>${(x.reasons||[]).map((r)=>`<span class="reason">${r}</span>`).join('')}</div>`,'event')).join(''):`<div class="card empty">이번 주에는 비교 기준을 벗어난 일정이 없었습니다.</div>`;
+ el('events').innerHTML=events.length?events.map((x)=>card(`<h3>${x.title}</h3><p>${KO[x.day]||''}${x.durationHours?` · ${x.durationHours}h`:(x.allDay||x.periodEvent)?' · 기간':''}</p><div>${(x.reasons||[]).map((r)=>`<span class="reason">${r}</span>`).join('')}</div>`,'event')).join(''):`<div class="card empty">이번 주에는 비교 기준을 벗어난 일정이 없었습니다.</div>`;
  el('insightTitle').textContent=m.integratedInsight.title;el('insightDetail').textContent=m.integratedInsight.detail;
  const felt=m.subjective?.present?`<h3>체감 ${m.subjective.avgScore??'–'}점 · ${m.subjective.count}일</h3><p>${m.subjective.detail}</p>`:'<h3>자기보고 기록 없음</h3><p>일정 부하와 체감을 연결할 근거가 아직 없습니다.</p>';
  const sleep=m.sleepKnown?`<h3>수면 ${m.sleepAvg}h · 실제 기록</h3><p>${recovery?.detail||'실제 수면을 반영했습니다.'}</p>`:`<h3>수면 ${m.sleepAvg}h · 추정치</h3><p>회복 부채를 누적하지 않고 판단을 보류했습니다.</p>`;

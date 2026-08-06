@@ -45,8 +45,8 @@ export function publicReport(report) {
     delete safe.subjective.gap.distance;
   }
   if (safe.notableEvents?.items) {
-    safe.notableEvents.items = safe.notableEvents.items.map(({ title, category, start, end, durationHours, allDay, day, reasons }) =>
-      ({ title, category, start, end, durationHours, allDay, day, reasons }));
+    safe.notableEvents.items = safe.notableEvents.items.map(({ title, category, start, end, durationHours, allDay, periodEvent, day, reasons }) =>
+      ({ title, category, start, end, durationHours, allDay, periodEvent, day, reasons }));
   }
   return safe;
 }

@@ -43,8 +43,19 @@ test('multi-day preview never reports the full 51 hours on one day', () => {
     title:'긴 사역 일정', calendar:'Ministry Support', allDay:false,
     start:'2026-06-18T18:00:00+09:00', end:'2026-06-20T21:00:00+09:00',
   }], cfg, cfg.catmap, { sleepKnown:false });
-  assert.ok(Math.max(...Object.values(result.preview.dayHours)) <= 24);
+  assert.equal(Math.max(...Object.values(result.preview.dayHours)), 0);
+  assert.deepEqual(result.preview.banners, ['긴 사역 일정']);
   assert.doesNotMatch(result.preview.detail, /51h/);
+});
+
+test('a 24h+ timed period is context, not committed active time', () => {
+  const metrics = buildWeek([{
+    title:'수련회 기간', calendar:'Ministry Support', allDay:false,
+    start:'2026-06-11T18:00:00+09:00', end:'2026-06-13T21:00:00+09:00',
+  }], cfg, null, start);
+  assert.equal(metrics.eventHistory[0].periodEvent, true);
+  assert.equal(metrics.eventHistory[0].durationHours, null);
+  assert.ok(metrics.peakCommitted <= 24);
 });
 
 test('public payload excludes raw reports and full event history', () => {

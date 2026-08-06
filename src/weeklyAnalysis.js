@@ -87,7 +87,7 @@ function notableFor(m, history) {
     const prior = priorByTitle.get(eventKey(event.title)) || [];
     const reasons=[]; let rank=0;
     if (comparisonReady && prior.length===0) { reasons.push('최근 4주에 없던 일정'); rank+=4; }
-    if (event.allDay) { reasons.push('종일·기간 일정'); rank+=2; }
+    if (event.allDay || event.periodEvent) { reasons.push('종일·기간 일정'); rank+=2; }
     if (event.durationHours>=5) { reasons.push(`${event.durationHours}h 장시간 일정`); rank+=3; }
     if (!event.allDay && localHour(event.start)>=22) { reasons.push('밤 10시 이후 시작'); rank+=2; }
     const durations=prior.map((row)=>row.durationHours).filter(Number.isFinite);
@@ -114,7 +114,8 @@ function preview(nextEvents, catmap) {
   if (!nextEvents?.length) return { title:'다음 주 미리보기', detail:'등록된 다음 주 일정이 없습니다.', flags:[], banners:[] };
   const dayHours=Object.fromEntries(DAYS.map((day)=>[day,0])); const banners=[];
   for (const event of nextEvents) {
-    if (event.allDay) { banners.push(event.title); continue; }
+    const spanHours=(new Date(event.end)-new Date(event.start))/3.6e6;
+    if (event.allDay || spanHours>=24) { banners.push(event.title); continue; }
     if (!['ministry','worship'].includes(bucketOf(event,catmap))) continue;
     for (const segment of splitAcrossKstDays(event)) dayHours[segment.day]+=segment.hours;
   }

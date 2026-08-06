@@ -270,7 +270,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   }
   const eventHistory = buildEventHistory(expandedEvents, catmap, tz);
   for (const ev of eventHistory) {
-    if (!ev.allDay && ev.durationHours >= 5)
+    if (!ev.allDay && !ev.periodEvent && ev.durationHours >= 5)
       special.push({ day: ev.day, title: ev.title, hours: ev.durationHours });
   }
   for (const occurrence of nonCalendarOccurrences) {
@@ -335,7 +335,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
 
   // extra signals for the lenses
   const lh = (iso) => { const d = new Date(new Date(iso).toLocaleString('en-US',{timeZone:tz})); return d.getHours()+d.getMinutes()/60; };
-  const timedEvents = expandedEvents.filter(e => !e.allDay);
+  const timedEvents = expandedEvents.filter(e => !isPeriodEvent(e));
   const lateNightCount = timedEvents.filter(e => lh(e.start) >= 22).length;
   const latestEndH = timedEvents.length ? Math.max(...timedEvents.map(e => lh(e.end))) : null;
   const fmtHM = (h) => h==null ? null : `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
@@ -373,7 +373,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
 function splitEventsByLocalDay(events, tz) {
   const segments = [];
   for (const event of events) {
-    if (event.allDay) continue;
+    if (isPeriodEvent(event)) continue;
     let cursor = new Date(event.start);
     const end = new Date(event.end);
     if (!Number.isFinite(cursor.getTime()) || !Number.isFinite(end.getTime()) || end <= cursor) continue;
@@ -391,7 +391,8 @@ function splitEventsByLocalDay(events, tz) {
 function buildEventHistory(events, catmap, tz) {
   return events.map((event) => {
     const allDay = Boolean(event.allDay);
-    const durationHours = allDay ? null : +durH(event).toFixed(2);
+    const periodEvent = !allDay && durH(event) >= 24;
+    const durationHours = allDay || periodEvent ? null : +durH(event).toFixed(2);
     return {
       title: String(event.title || '(제목 없음)'),
       calendar: String(event.calendar || ''),
@@ -400,9 +401,15 @@ function buildEventHistory(events, catmap, tz) {
       end: event.end,
       durationHours,
       allDay,
+      periodEvent,
+      spanHours: periodEvent ? +durH(event).toFixed(2) : null,
       day: dayKey(event.start, tz),
     };
   });
+}
+
+function isPeriodEvent(event) {
+  return Boolean(event.allDay) || durH(event) >= 24;
 }
 
 function dateKeyInTimezone(date, tz) {
