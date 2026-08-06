@@ -58,6 +58,16 @@ test('a 24h+ timed period is context, not committed active time', () => {
   assert.ok(metrics.peakCommitted <= 24);
 });
 
+test('ministry overlapping routine work is counted once', () => {
+  const metrics = buildWeek([{
+    title:'청소년 수련회', calendar:'Ministry Support', allDay:false,
+    start:'2026-06-09T08:00:00+09:00', end:'2026-06-09T22:30:00+09:00',
+  }], cfg, null, start);
+  assert.equal(metrics.ministryByDay.tue, 14.5);
+  assert.equal(metrics.committedByDay.tue, 14.67);
+  assert.ok(metrics.peakCommitted <= 24);
+});
+
 test('public payload excludes raw reports and full event history', () => {
   const safe = publicReport({
     selfReports:[{date:'2026-06-08',note:'민감한 자기보고'}],

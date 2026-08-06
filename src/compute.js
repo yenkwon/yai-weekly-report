@@ -313,7 +313,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   const evByDay = Object.fromEntries(DAYS.map(d=>[d,[]]));
   for (const ev of eventSegments) { const d = dayKey(ev.start, tz); const b = bucketOf(ev, catmap);
     if (['ministry','worship','career','social','growth','selfcare'].includes(b))
-      evByDay[d].push([localH(ev.start), localH(ev.end), (b==='worship'?'ministry':b==='career'?'work':b)]); }
+      evByDay[d].push([localH(ev.start), localEndH(ev), (b==='worship'?'ministry':b)]); }
   // mirror the injected spine ministry into the grid when those events aren't logged
   if (evByDay.sun.filter(b=>b[2]==='ministry').length === 0) {
     const s = routine.fixedMinistry.sunChurch; evByDay.sun.push([hm(s.start), hm(s.end), 'ministry']); }
@@ -330,6 +330,25 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
     for (let i=1;i<=288;i++){ if(i===288||paint[i]!==cur){ blocks.push([+(st/12).toFixed(2),+(i/12).toFixed(2),cur]); cur=paint[i]; st=i; } }
     dayBlocks[d]=blocks;
   }
+
+  // Calendar events override the routine spine in overlapping 5-minute slots.
+  // Recalculate fixed work/commute and committed time from the painted union so
+  // a retreat during office hours is not counted as both work and ministry.
+  const hoursOf = (day, types) => dayBlocks[day]
+    .filter(([, , type]) => types.includes(type))
+    .reduce((sum, [start, end]) => sum + end - start, 0);
+  buckets.work = +DAYS.reduce((sum, day) => sum + hoursOf(day, ['work']), 0).toFixed(1);
+  buckets.commute = +DAYS.reduce((sum, day) => sum + hoursOf(day, ['commute']), 0).toFixed(1);
+  for (const day of DAYS) {
+    const routineMinistry = nonCalendarOccurrences
+      .filter((item) => item.day === day && ['ministry','worship'].includes(item.category))
+      .reduce((sum, item) => sum + (item.durationMinutes || 0) / 60, 0);
+    ministryDay[day] = +(hoursOf(day, ['ministry']) + routineMinistry).toFixed(2);
+    committed[day] = +(hoursOf(day, ['work','commute','ministry']) + routineMinistry).toFixed(2);
+  }
+  let adjustedNonLife = 0;
+  for (const bucket of catmap.buckets) if (bucket !== 'life') adjustedNonLife += buckets[bucket];
+  buckets.life = +(168 - adjustedNonLife).toFixed(1);
 
   const sleepVals = DAYS.map(d => sp.sleep[d]);
 
@@ -349,7 +368,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
     restDays: DAYS.filter(d => committed[d] < 0.1).length,
     sleepAvg: +(sleepVals.reduce((a,b)=>a+b,0)/7).toFixed(2),
     sleepMin: +Math.min(...sleepVals).toFixed(2),
-    drivingHours: +DAYS.reduce((a,d)=>a+sp.commute[d],0).toFixed(1),
+    drivingHours: buckets.commute,
     dayBlocks,
     spotlight: buildSpotlight(DAYS.reduce((a,b)=>committed[b]>committed[a]?b:a), dayBlocks, expandedEvents, tz),
     flags: {
@@ -368,6 +387,14 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
     routineMeta: buildRoutineMeta(routine),
   };
   return metrics;
+}
+
+function localEndH(event) {
+  const start = new Date(event.start);
+  const end = new Date(event.end);
+  const local = new Date(end.toLocaleString('en-US', { timeZone:'Asia/Seoul' }));
+  const hour = local.getHours() + local.getMinutes() / 60;
+  return hour === 0 && end > start ? 24 : hour;
 }
 
 function splitEventsByLocalDay(events, tz) {
