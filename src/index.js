@@ -1,4 +1,4 @@
-// index.js — orchestrator. `node src/index.js send` | `reconcile`
+// index.js — orchestrator. `node src/index.js send` | `reconcile` | `publish`
 import fs from 'node:fs';
 import { loadConfig, buildWeek, withTrends } from './compute.js';
 import { lastWeekRange, fetchWeek } from './fetchCalendar.js';
@@ -72,6 +72,9 @@ if (MODE === 'send') {
   const msgId = await sendReport(summaryText(report, link));
   fs.writeFileSync('./data/last-msg.json', JSON.stringify({ week, msgId }));
   console.log('sent', { week, note: report.openingNote.source, peak: report.peakDay });
+} else if (MODE === 'publish') {
+  const { report, link } = await build(null, false);
+  console.log('published', { week, note:report.openingNote.source, link });
 } else {
   const { msgId } = fs.existsSync('./data/last-msg.json')
     ? JSON.parse(fs.readFileSync('./data/last-msg.json','utf8'))

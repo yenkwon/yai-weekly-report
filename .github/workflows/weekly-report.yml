@@ -5,7 +5,7 @@ on:
     - cron: '0 23 * * 0'    # Mon 08:00 KST  → resend if corrections or sleep reply exist
   workflow_dispatch:
     inputs:
-      mode: { description: 'send | reconcile', required: true, default: 'send' }
+      mode: { description: 'send | reconcile | publish', required: true, default: 'send' }
 
 permissions:
   contents: write           # to commit history.json + docs/ for Pages
@@ -98,6 +98,7 @@ jobs:
           PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
         run: node src/index.js ${{ steps.mode.outputs.m }}
       - name: Commit private event history
+        continue-on-error: true
         working-directory: worklife-agent
         run: |
           git config user.name "balance-bot"
