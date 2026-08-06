@@ -217,15 +217,15 @@
   },
   {
     "week": "2026-W31",
-    "peakCommitted": 25.2,
+    "peakCommitted": 15.3,
     "restDays": 0,
     "sleepAvg": 6.68,
     "sleepMin": 5.42,
-    "drivingHours": 9,
+    "drivingHours": 8,
     "buckets": {
       "sleep": 46.7,
-      "work": 46.3,
-      "commute": 9,
+      "work": 28.5,
+      "commute": 8,
       "ministry": 32.5,
       "worship": 2.5,
       "career": 0,
@@ -234,7 +234,7 @@
       "family": 0,
       "selfcare": 0,
       "exercise": 0,
-      "life": 30.9
+      "life": 49.8
     },
     "flags": {
       "satSleepover": true,
@@ -243,19 +243,19 @@
       "selfcareZero": true,
       "restZero": true
     },
-    "othersPct": 90,
-    "selfPct": 10,
+    "othersPct": 91,
+    "selfPct": 9,
     "recoveryWeekly": null,
     "recoveryBalance": null,
     "sleepKnown": false,
     "lateNightCount": 1,
-    "loadStdev": 7,
+    "loadStdev": 4.2,
     "avgScore": null,
     "insightTopics": [
-      "peak",
+      "ministry",
       "청소년/청년 수련회",
       "청소년/청년 수련회"
     ],
-    "integratedInsight": "가장 긴 하루가 만들어진 맥락"
+    "integratedInsight": "밀도는 높았고, 끝은 일찍 왔다"
   }
 ]
