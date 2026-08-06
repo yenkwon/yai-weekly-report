@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주간 리포트</title>
+<style>
+:root{--bg:#f2efe8;--paper:#fffdf8;--ink:#26293a;--muted:#686b78;--line:#ded8cc;--gold:#a77b25;--green:#2f7c69;--red:#bd5d4c;--blue:#485f91;--violet:#78659c;--shadow:0 10px 35px rgba(50,45,35,.07)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.62}.wrap{max-width:960px;margin:auto;padding:52px 22px 80px}
+.eyebrow{margin:0 0 14px;color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.2em}.opening{margin:0;max-width:760px;font-size:clamp(22px,3.3vw,32px);font-weight:760;line-height:1.45;letter-spacing:-.025em}.lede{margin:16px 0 0;color:var(--muted);font-size:15px}.confidence{display:inline-block;margin-left:6px;padding:2px 7px;border:1px solid var(--line);border-radius:999px;font-size:10px;vertical-align:2px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px}.stat,.card{background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px}.stat{padding:17px}.stat strong{font-size:25px;display:block;line-height:1.1}.stat span{font-size:12px;color:var(--muted)}
+section{margin-top:52px}.head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}.num{font-size:12px;color:var(--gold);font-weight:800}.head h2{font-size:22px;margin:0;letter-spacing:-.02em}.sub{margin:0 0 20px;color:var(--muted);font-size:14px}
+.changes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.change{padding:21px;border-left:4px solid var(--gold)}.change.up{border-left-color:var(--red)}.change.down{border-left-color:var(--green)}.change h3,.event h3{font-size:16px;margin:0 0 8px}.change p,.event p,.insight p,.felt p,.preview p,.experiment p{margin:0;color:var(--muted);font-size:14px}
+.events{display:grid;gap:12px}.event{padding:19px 21px}.reason{display:inline-block;margin:7px 5px 0 0;padding:3px 8px;background:#f0ebe0;border-radius:999px;color:#725d35;font-size:11px}.empty{padding:22px;color:var(--muted)}
+.insight{padding:28px;border-left:5px solid var(--gold);background:linear-gradient(140deg,#fffaf0,var(--paper))}.insight h3{margin:0 0 9px;font-size:20px}.felt{display:grid;grid-template-columns:1fr 1fr;gap:14px}.felt .card{padding:21px}.felt h3{margin:0 0 7px;font-size:16px}
+.alloc{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.bars,.days{padding:24px}.bar{display:grid;grid-template-columns:92px 1fr 60px;gap:10px;align-items:center;margin:10px 0;font-size:13px}.track{height:14px;background:#eee9df;border-radius:7px;overflow:hidden}.fill{height:100%;background:var(--blue);border-radius:7px}.bar:nth-child(4n+2) .fill{background:var(--violet)}.bar:nth-child(4n+3) .fill{background:var(--green)}.bar:nth-child(4n) .fill{background:var(--gold)}.value{text-align:right;font-weight:700}
+.day{display:grid;grid-template-columns:28px 1fr 52px;gap:8px;align-items:center;margin:9px 0;font-size:12px}.day .track{height:11px}.day.peak .fill{background:var(--red)}
+.next{display:grid;grid-template-columns:1fr 1fr;gap:16px}.preview,.experiment{padding:24px}.preview{border-left:5px solid var(--green)}.experiment{border-left:5px solid var(--violet)}.preview h3,.experiment h3{margin:0 0 8px;font-size:17px}.foot{margin-top:45px;text-align:center;color:var(--muted);font-size:12px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.changes,.felt,.alloc,.next{grid-template-columns:1fr}.wrap{padding-top:34px}}
+</style>
+</head>
+<body><main class="wrap">
+<p class="eyebrow" id="eyebrow"></p><h1 class="opening" id="opening"></h1><p class="lede" id="lede"></p><div class="stats" id="stats"></div>
+<section><div class="head"><span class="num">01</span><h2>이번 주 달라진 3가지</h2></div><p class="sub">지난주와 최근 4주 평균을 함께 놓고, 변화 폭이 큰 세 가지를 먼저 봅니다.</p><div class="changes" id="changes"></div></section>
+<section><div class="head"><span class="num">02</span><h2>새롭거나 특별했던 일정</h2></div><p class="sub" id="eventNote"></p><div class="events" id="events"></div></section>
+<section><div class="head"><span class="num">03</span><h2>통합 인사이트</h2></div><p class="sub">숫자 하나가 아니라 변화, 일정, 체감을 연결해 읽습니다.</p><div class="card insight"><h3 id="insightTitle"></h3><p id="insightDetail"></p></div></section>
+<section><div class="head"><span class="num">04</span><h2>체감과 실제</h2></div><p class="sub">확인된 기록과 추정치를 구분해 과하게 단정하지 않습니다.</p><div class="felt" id="felt"></div></section>
+<section><div class="head"><span class="num">05</span><h2>168시간 분배</h2></div><p class="sub">결론이 아니라 해석의 근거입니다. 일정이 자정을 넘으면 날짜별 실제 시간만 계산합니다.</p><div class="alloc"><div class="card bars" id="bars"></div><div class="card days" id="days"></div></div></section>
+<section><div class="head"><span class="num">06</span><h2>다음 주 실험 하나</h2></div><p class="sub">반복 조언 대신 다음 리포트에서 결과를 확인할 행동 하나만 남깁니다.</p><div class="next"><div class="card preview"><h3 id="previewTitle"></h3><p id="previewDetail"></p></div><div class="card experiment"><h3 id="experimentTitle"></h3><p id="experimentDetail"></p></div></div></section>
+<p class="foot" id="foot"></p>
+</main>
+<script>
+const DATA=/*__WEEK_DATA__*/ null;
+const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'},DAYS=['mon','tue','wed','thu','fri','sat','sun'];
+const el=(id)=>document.getElementById(id),card=(html,cls='')=>`<article class="card ${cls}">${html}</article>`,fmt=(value)=>Number.isFinite(value)?value:'–';
+(function(){const m=DATA;if(!m)return;
+ const label=m.weekLabel||m.week,split=m.lenses.find((x)=>x.key==='others_self'),recovery=m.lenses.find((x)=>x.key==='recovery_debt');
+ document.title=`${label} 주간 리포트`;el('eyebrow').textContent=`WEEKLY REFLECTION · ${label}`;el('opening').textContent=m.openingNote.text;
+ el('lede').innerHTML=`가장 긴 날 <b>${KO[m.peakDay]} ${m.peakCommitted}h</b> · 사역과 예배 <b>${(m.buckets.ministry+m.buckets.worship).toFixed(1)}h</b> · 수면 <b>${m.sleepAvg}h</b><span class="confidence">${m.sleepKnown?'실제':'추정'}</span>`;
+ const stats=[[m.restDays,'완전한 휴일','일'],[m.peakCommitted,'가장 긴 하루','h'],[split?.selfPct,'나를 위한 비중','%'],[m._lateNightCount||0,'밤 10시 이후','건']];
+ el('stats').innerHTML=stats.map(([v,l,u])=>`<div class="stat"><strong>${fmt(v)}${u}</strong><span>${l}</span></div>`).join('');
+ el('changes').innerHTML=(m.changes||[]).map((x)=>card(`<h3>${x.title}</h3><p>${x.detail}</p>`,`change ${x.tone}`)).join('');
+ el('eventNote').textContent=m.notableEvents?.note||'';const events=m.notableEvents?.items||[];
+ el('events').innerHTML=events.length?events.map((x)=>card(`<h3>${x.title}</h3><p>${KO[x.day]||''}${x.durationHours?` · ${x.durationHours}h`:x.allDay?' · 종일':''}</p><div>${(x.reasons||[]).map((r)=>`<span class="reason">${r}</span>`).join('')}</div>`,'event')).join(''):`<div class="card empty">이번 주에는 비교 기준을 벗어난 일정이 없었습니다.</div>`;
+ el('insightTitle').textContent=m.integratedInsight.title;el('insightDetail').textContent=m.integratedInsight.detail;
+ const felt=m.subjective?.present?`<h3>체감 ${m.subjective.avgScore??'–'}점 · ${m.subjective.count}일</h3><p>${m.subjective.detail}</p>`:'<h3>자기보고 기록 없음</h3><p>일정 부하와 체감을 연결할 근거가 아직 없습니다.</p>';
+ const sleep=m.sleepKnown?`<h3>수면 ${m.sleepAvg}h · 실제 기록</h3><p>${recovery?.detail||'실제 수면을 반영했습니다.'}</p>`:`<h3>수면 ${m.sleepAvg}h · 추정치</h3><p>회복 부채를 누적하지 않고 판단을 보류했습니다.</p>`;
+ el('felt').innerHTML=card(felt)+card(sleep);
+ const order=[['work','본업'],['sleep','수면'],['life','생활·여가'],['ministry','사역'],['worship','예배'],['commute','이동'],['career','커리어'],['social','관계'],['growth','성장'],['selfcare','자기돌봄'],['exercise','운동']];
+ const max=Math.max(...order.map(([k])=>m.buckets[k]||0));el('bars').innerHTML=order.filter(([k])=>(m.buckets[k]||0)>0).map(([k,l])=>{const h=m.buckets[k];return`<div class="bar"><span>${l}</span><div class="track"><div class="fill" style="width:${h/max*100}%"></div></div><span class="value">${h}h</span></div>`}).join('');
+ const dayMax=Math.max(...DAYS.map((d)=>m.committedByDay[d]));el('days').innerHTML='<b>요일별 구속 시간</b>'+DAYS.map((d)=>`<div class="day ${d===m.peakDay?'peak':''}"><span>${KO[d]}</span><div class="track"><div class="fill" style="width:${m.committedByDay[d]/dayMax*100}%"></div></div><span class="value">${m.committedByDay[d]}h</span></div>`).join('');
+ el('previewTitle').textContent=m.preview.title;el('previewDetail').textContent=m.preview.detail;const exp=m.recommendations?.[0];el('experimentTitle').textContent=exp?.title||'실험 없음';el('experimentDetail').textContent=exp?.detail||'';
+ el('foot').textContent=`원문 일정 이력은 비교 분석용으로만 저장 · 공개 페이지에는 전체 일정과 자기보고 원문을 싣지 않음 · 통합 해석 ${m.synthesisSource==='llm'?'Claude':'자동'} · ${label}`;
+})();
+</script></body></html>

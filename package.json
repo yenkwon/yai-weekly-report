@@ -6,7 +6,9 @@
   "scripts": {
     "send": "node src/index.js send",
     "reconcile": "node src/index.js reconcile",
-    "test": "node sample/run.js"
+    "test": "node --test test/weekly-v2.test.js",
+    "sample": "node sample/run.js",
+    "sanitize:public": "node scripts/sanitize-public-reports.js"
   },
   "dependencies": { "googleapis": "^144.0.0" }
 }

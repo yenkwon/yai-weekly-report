@@ -49,8 +49,17 @@ export async function fetchWeek(catmap, range) {
       singleEvents: true, orderBy: 'startTime', maxResults: 250,
     });
     for (const e of res.data.items || []) {
-      if (!e.start?.dateTime) continue;             // skip all-day for hour math (handled separately if needed)
-      events.push({ title: e.summary || '(제목 없음)', start: e.start.dateTime, end: e.end.dateTime, calendar: c.summary });
+      const allDay = Boolean(e.start?.date && !e.start?.dateTime);
+      const start = e.start?.dateTime || e.start?.date;
+      const end = e.end?.dateTime || e.end?.date;
+      if (!start || !end) continue;
+      events.push({
+        title: e.summary || '(제목 없음)',
+        start,
+        end,
+        calendar: c.summary,
+        allDay,
+      });
     }
   }
   return events;

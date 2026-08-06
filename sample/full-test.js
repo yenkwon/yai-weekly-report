@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
-import { analyze } from '../src/insights.js';
-import { openingNote } from '../src/openingNote.js';
-import { renderHTML, summaryText } from '../src/renderReport.js';
+import { analyze } from '../src/weeklyAnalysis.js';
+import { synthesizeWeekly } from '../src/weeklySynthesis.js';
+import { renderHTML } from '../src/renderReportV2.js';
 
 const cfg = loadConfig('./config');
 const events = JSON.parse(fs.readFileSync('./sample/sample-week.json','utf8'));
@@ -21,9 +21,11 @@ const selfReport = process.argv[2]==='self' ? [
 ] : [];
 
 const m = withTrends(buildWeek(events, cfg, null, mondayISO), history);
-const ins = analyze(m, history, selfReport, nextEvents, cfg, cfg.catmap);
-const note = await openingNote(m, ins, selfReport);
-const report = { week:'2026-W25', sleepKnown:false, openingNote:note, selfReports:selfReport, ...m, ...ins };
+const ins = analyze(m, history, selfReport, nextEvents, cfg, cfg.catmap, { sleepKnown:false });
+const synthesis = await synthesizeWeekly({ metrics:m, analysis:ins, selfReports:selfReport, history });
+const note = synthesis.openingNote;
+const report = { week:'2026-W25', sleepKnown:false, openingNote:note, integratedInsight:synthesis.integratedInsight,
+  synthesisSource:synthesis.source, selfReports:selfReport, ...m, ...ins, recommendations:[synthesis.experiment] };
 
 console.log('=== OPENING NOTE ('+note.source+') ===\n'+note.text);
 console.log('\n=== DISCOVERY ===\n'+ins.discovery.title+'\n  '+ins.discovery.detail);
@@ -35,5 +37,7 @@ ins.recommendations.forEach(r=>console.log(`  (${r.p}) ${r.title}`));
 console.log('\n=== SUBJECTIVE present:', ins.subjective.present, '===');
 
 const out = process.argv[2]==='self' ? '주간보고_샘플_대시보드.html' : '주간보고_샘플_객관만.html';
-fs.writeFileSync('/mnt/user-data/outputs/'+out, renderHTML(report));
-console.log('\n[ok] wrote', out);
+const outputDir = process.env.SAMPLE_OUTPUT_DIR || './sample/output';
+fs.mkdirSync(outputDir, { recursive:true });
+fs.writeFileSync(`${outputDir}/${out}`, renderHTML(report));
+console.log('\n[ok] wrote', `${outputDir}/${out}`);

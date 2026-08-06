@@ -2,16 +2,17 @@
 import fs from 'node:fs';
 import { loadConfig, buildWeek, withTrends } from './compute.js';
 import { lastWeekRange, fetchWeek } from './fetchCalendar.js';
-import { analyze } from './insights.js';
-import { openingNote } from './openingNote.js';
+import { analyze } from './weeklyAnalysis.js';
+import { synthesizeWeekly } from './weeklySynthesis.js';
 import { getAdapter } from './selfReport.js';
-import { summaryText, renderHTML, appendHistory } from './renderReport.js';
+import { summaryText, renderHTML, appendHistory, appendPrivateEventHistory } from './renderReportV2.js';
 import { sendReport, sendText, readSleepReply } from './telegram.js';
 import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
 
 const MODE = process.argv[2] || 'send';
 const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
 const PUBLISH_DIR = process.env.PUBLISH_DIR || 'docs';
+const PRIVATE_EVENT_HISTORY_PATH = process.env.PRIVATE_EVENT_HISTORY_PATH || '../yai-worklife-agent/store/weekly-event-history.json';
 const nextRange = (r) => ({ timeMin:r.timeMax, timeMax:new Date(new Date(r.timeMax).getTime()+7*864e5).toISOString() });
 
 const cfg = loadConfig('./config');
@@ -23,15 +24,17 @@ const events = await fetchWeek(cfg.catmap, range);
 const nextEvents = await fetchWeek(cfg.catmap, nextRange(range)).catch(()=>[]);
 const selfReport = await getAdapter().fetchWeek(range).catch(()=>[]);
 const history = fs.existsSync('./data/history.json') ? JSON.parse(fs.readFileSync('./data/history.json','utf8')) : [];
-const priorHistory = history.filter((row) => row.week !== week);
+const privateEventHistory = fs.existsSync(PRIVATE_EVENT_HISTORY_PATH) ? JSON.parse(fs.readFileSync(PRIVATE_EVENT_HISTORY_PATH,'utf8')) : [];
+const eventsByWeek = new Map(privateEventHistory.map((row) => [row.week, row.events || []]));
+const priorHistory = history.filter((row) => row.week !== week).map((row) => ({ ...row, eventHistory:eventsByWeek.get(row.week) || [] }));
 
 async function build(sleepOverride=null, sleepKnown=false) {
   const effectiveSleepOverride = mergeSleepOverrides(corrections.sleepOverride, sleepOverride);
   const sleepOverrideDays = Object.keys(effectiveSleepOverride || {});
   const effectiveSleepKnown = sleepOverrideDays.length === 7;
   const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.startLocal), priorHistory);
-  const ins = analyze(m, priorHistory, selfReport, nextEvents, correctedCfg, correctedCfg.catmap);
-  const note = await openingNote(m, ins, selfReport);
+  const ins = analyze(m, priorHistory, selfReport, nextEvents, correctedCfg, correctedCfg.catmap, { sleepKnown: effectiveSleepKnown });
+  const synthesis = await synthesizeWeekly({ metrics:m, analysis:ins, selfReports:selfReport, history:priorHistory });
   const report = {
     week,
     weekLabel: range.weekLabel,
@@ -44,16 +47,23 @@ async function build(sleepOverride=null, sleepKnown=false) {
     sleepOverrideDays,
     sleepSource: sleepOverrideDays.length ? (sleepKnown ? 'reply' : 'correction') : 'estimate',
     corrections,
-    openingNote: note,
+    openingNote: synthesis.openingNote,
+    integratedInsight: synthesis.integratedInsight,
+    synthesisSource: synthesis.source,
     selfReports: selfReport,
     ...m,
     ...ins,
+    recommendations: [synthesis.experiment],
   };
   fs.mkdirSync(`./${PUBLISH_DIR}/weeks`, { recursive: true });
   const html = renderHTML(report);
   fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);
   fs.writeFileSync(`./${PUBLISH_DIR}/weeks/${week}.html`, html);
-  appendHistory('./data/history.json', week, m, ins.historyRow);
+  appendHistory('./data/history.json', week, m, {
+    ...ins.historyRow,
+    integratedInsight: synthesis.integratedInsight.title,
+  });
+  appendPrivateEventHistory(PRIVATE_EVENT_HISTORY_PATH, week, m.eventHistory);
   return { report, link: `${PAGES}/weeks/${week}.html` };
 }
 

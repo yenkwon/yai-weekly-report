@@ -154,6 +154,7 @@ function expandRoutineEvents(events, routine) {
   const re = new RegExp(yjds.match, 'i');
   const additions = [];
   for (const ev of events) {
+    if (ev.allDay) continue;
     const title = ev.title || '';
     if (!re.test(title) || /준비|연습/i.test(title)) continue;
 
@@ -247,6 +248,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   const tz = routine.timezone;
   const sp = spine(routine);
   const expandedEvents = expandRoutineEvents(events, routine);
+  const eventSegments = splitEventsByLocalDay(expandedEvents, tz);
   const dateByDay = dateByDayForPeriod(periodStartLocal);
   const nonCalendarOccurrences = expandNonCalendarRoutines(
     cfg.nonCalendarRoutines || [],
@@ -260,12 +262,16 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   // Variable buckets come from the actual calendar.
   const perDay = Object.fromEntries(DAYS.map(d => [d, {}]));
   const special = [];
-  for (const ev of expandedEvents) {
+  for (const ev of eventSegments) {
     const d = dayKey(ev.start, tz);
     const b = bucketOf(ev, catmap);
     const h = durH(ev);
     perDay[d][b] = (perDay[d][b] || 0) + h;
-    if (h >= 5) special.push({ day: d, title: ev.title, hours: +h.toFixed(1) });
+  }
+  const eventHistory = buildEventHistory(expandedEvents, catmap, tz);
+  for (const ev of eventHistory) {
+    if (!ev.allDay && ev.durationHours >= 5)
+      special.push({ day: ev.day, title: ev.title, hours: ev.durationHours });
   }
   for (const occurrence of nonCalendarOccurrences) {
     if (!occurrence.durationMinutes) continue;
@@ -305,7 +311,7 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
   // ---- per-day clock-accurate blocks for the grid ----
   const localH = (iso) => { const d = new Date(new Date(iso).toLocaleString('en-US',{timeZone:tz})); return d.getHours()+d.getMinutes()/60; };
   const evByDay = Object.fromEntries(DAYS.map(d=>[d,[]]));
-  for (const ev of expandedEvents) { const d = dayKey(ev.start, tz); const b = bucketOf(ev, catmap);
+  for (const ev of eventSegments) { const d = dayKey(ev.start, tz); const b = bucketOf(ev, catmap);
     if (['ministry','worship','career','social','growth','selfcare'].includes(b))
       evByDay[d].push([localH(ev.start), localH(ev.end), (b==='worship'?'ministry':b==='career'?'work':b)]); }
   // mirror the injected spine ministry into the grid when those events aren't logged
@@ -329,8 +335,9 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
 
   // extra signals for the lenses
   const lh = (iso) => { const d = new Date(new Date(iso).toLocaleString('en-US',{timeZone:tz})); return d.getHours()+d.getMinutes()/60; };
-  const lateNightCount = expandedEvents.filter(e => lh(e.start) >= 22).length;
-  const latestEndH = expandedEvents.length ? Math.max(...expandedEvents.map(e => lh(e.end))) : null;
+  const timedEvents = expandedEvents.filter(e => !e.allDay);
+  const lateNightCount = timedEvents.filter(e => lh(e.start) >= 22).length;
+  const latestEndH = timedEvents.length ? Math.max(...timedEvents.map(e => lh(e.end))) : null;
   const fmtHM = (h) => h==null ? null : `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
   const metrics = {
     committedByDay: committed,
@@ -356,10 +363,61 @@ export function buildWeek(events, cfg, sleepOverride = null, periodStartLocal = 
     _latestEnd: fmtHM(latestEndH),
     dateByDay,
     special,
+    eventHistory,
     nonCalendarRoutines: summarizeNonCalendarRoutines(nonCalendarOccurrences),
     routineMeta: buildRoutineMeta(routine),
   };
   return metrics;
+}
+
+function splitEventsByLocalDay(events, tz) {
+  const segments = [];
+  for (const event of events) {
+    if (event.allDay) continue;
+    let cursor = new Date(event.start);
+    const end = new Date(event.end);
+    if (!Number.isFinite(cursor.getTime()) || !Number.isFinite(end.getTime()) || end <= cursor) continue;
+    while (cursor < end) {
+      const localDate = dateKeyInTimezone(cursor, tz);
+      const nextMidnight = localMidnight(addDays(localDate, 1), tz);
+      const segmentEnd = end < nextMidnight ? end : nextMidnight;
+      segments.push({ ...event, start: cursor.toISOString(), end: segmentEnd.toISOString() });
+      cursor = segmentEnd;
+    }
+  }
+  return segments;
+}
+
+function buildEventHistory(events, catmap, tz) {
+  return events.map((event) => {
+    const allDay = Boolean(event.allDay);
+    const durationHours = allDay ? null : +durH(event).toFixed(2);
+    return {
+      title: String(event.title || '(제목 없음)'),
+      calendar: String(event.calendar || ''),
+      category: bucketOf(event, catmap),
+      start: event.start,
+      end: event.end,
+      durationHours,
+      allDay,
+      day: dayKey(event.start, tz),
+    };
+  });
+}
+
+function dateKeyInTimezone(date, tz) {
+  const values = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date).map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function localMidnight(dateKey, tz) {
+  if (tz !== 'Asia/Seoul') throw new Error(`Unsupported report timezone: ${tz}`);
+  return new Date(`${dateKey}T00:00:00+09:00`);
 }
 
 function expandNonCalendarRoutines(routines, dateByDay, events, tz) {
@@ -378,6 +436,7 @@ function expandNonCalendarRoutines(routines, dateByDay, events, tz) {
         category: routine.category || 'other',
         durationMinutes: Number.isFinite(duration) && duration > 0 ? duration : null,
         conditional: Boolean(routine.when_event_matches),
+        activeFrom: routine.active_from || null,
       });
     }
   }
@@ -404,6 +463,7 @@ function summarizeNonCalendarRoutines(occurrences) {
       occurrences: 0,
       minutes: 0,
       days: [],
+      activeFrom: occurrence.activeFrom,
     };
     item.occurrences += 1;
     item.minutes += occurrence.durationMinutes || 0;

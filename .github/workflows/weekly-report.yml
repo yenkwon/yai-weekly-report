@@ -40,6 +40,7 @@ jobs:
           token: ${{ secrets.WORKLIFE_REPO_TOKEN }}
           sparse-checkout: |
             store/self-reports.json
+            store/weekly-event-history.json
             config/non-calendar-routines.json
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v6
@@ -92,9 +93,23 @@ jobs:
           SELF_REPORT_SOURCE: telegram
           WORKLIFE_SELF_REPORTS_PATH: worklife-agent/store/self-reports.json
           WORKLIFE_ROUTINES_PATH: worklife-agent/config/non-calendar-routines.json
+          PRIVATE_EVENT_HISTORY_PATH: worklife-agent/store/weekly-event-history.json
           PUBLISH_DIR: docs
           PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
         run: node src/index.js ${{ steps.mode.outputs.m }}
+      - name: Commit private event history
+        working-directory: worklife-agent
+        run: |
+          git config user.name "balance-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add store/weekly-event-history.json
+          if git diff --staged --quiet; then
+            echo "nothing to commit"
+          else
+            git commit -m "store weekly event history $(date -u +%F)"
+            git pull --rebase
+            git push
+          fi
       - name: Commit history + dashboard
         run: |
           git config user.name "balance-bot"
