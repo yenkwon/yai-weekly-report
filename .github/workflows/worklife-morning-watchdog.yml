@@ -35,12 +35,20 @@ jobs:
           api="https://api.github.com/repos/${WORKLIFE_REPO}"
           auth=(-H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28")
           today="$(TZ=Asia/Seoul date +%F)"
+          hour="$(TZ=Asia/Seoul date +%H)"
+          minute="$(TZ=Asia/Seoul date +%M)"
+          now_minutes=$((10#$hour * 60 + 10#$minute))
 
           encoded="$(curl --fail-with-body --silent --show-error "${auth[@]}" "${api}/contents/store/briefing-history.json?ref=main" | jq -r '.content')"
           sent_date="$(printf '%s' "$encoded" | tr -d '\n' | base64 --decode | jq -r '.last_sent_date // ""')"
 
           if [ "$sent_date" = "$today" ]; then
             echo "Morning briefing already delivered for $today"
+            exit 0
+          fi
+
+          if [ "$now_minutes" -lt 300 ] || [ "$now_minutes" -ge 510 ]; then
+            echo "Morning briefing is missing for $today, but ${hour}:${minute} KST is outside the 05:00-08:29 recovery window"
             exit 0
           fi
 
