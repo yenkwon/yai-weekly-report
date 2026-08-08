@@ -8,16 +8,19 @@ import { getAdapter } from './selfReport.js';
 import { summaryText, renderHTML, appendHistory, appendPrivateEventHistory } from './renderReportV2.js';
 import { sendReport, sendText, readSleepReply } from './telegram.js';
 import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
+import { loadLifeContext } from './lifeContext.js';
 
 const MODE = process.argv[2] || 'send';
 const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
 const PUBLISH_DIR = process.env.PUBLISH_DIR || 'docs';
 const PRIVATE_EVENT_HISTORY_PATH = process.env.PRIVATE_EVENT_HISTORY_PATH || '../yai-worklife-agent/store/weekly-event-history.json';
+const WORKLIFE_NOW_CONTEXT_PATH = process.env.WORKLIFE_NOW_CONTEXT_PATH || '../yai-worklife-agent/store/now-context.json';
 const nextRange = (r) => ({ timeMin:r.timeMax, timeMax:new Date(new Date(r.timeMax).getTime()+7*864e5).toISOString() });
 
 const cfg = loadConfig('./config');
 const range = lastWeekRange(cfg.routine.timezone);
 const week = range.week;
+const lifeContext = loadLifeContext({ path:WORKLIFE_NOW_CONTEXT_PATH, range });
 const corrections = loadCorrections(week);
 const correctedCfg = applyCorrectionsToConfig(cfg, corrections);
 const events = await fetchWeek(cfg.catmap, range);
@@ -33,8 +36,19 @@ async function build(sleepOverride=null, sleepKnown=false) {
   const sleepOverrideDays = Object.keys(effectiveSleepOverride || {});
   const effectiveSleepKnown = sleepOverrideDays.length === 7;
   const m = withTrends(buildWeek(events, correctedCfg, effectiveSleepOverride, range.startLocal), priorHistory);
-  const ins = analyze(m, priorHistory, selfReport, nextEvents, correctedCfg, correctedCfg.catmap, { sleepKnown: effectiveSleepKnown });
-  const synthesis = await synthesizeWeekly({ metrics:m, analysis:ins, selfReports:selfReport, history:priorHistory });
+  const ins = analyze(m, priorHistory, selfReport, nextEvents, correctedCfg, correctedCfg.catmap, {
+    sleepKnown: effectiveSleepKnown,
+    lifeContexts: lifeContext.week,
+    lifeContextRecent: lifeContext.recent,
+  });
+  const synthesis = await synthesizeWeekly({
+    metrics:m,
+    analysis:ins,
+    selfReports:selfReport,
+    history:priorHistory,
+    lifeContexts:lifeContext.week,
+    lifeContextRecent:lifeContext.recent,
+  });
   const report = {
     week,
     weekLabel: range.weekLabel,
@@ -51,6 +65,8 @@ async function build(sleepOverride=null, sleepKnown=false) {
     integratedInsight: synthesis.integratedInsight,
     synthesisSource: synthesis.source,
     selfReports: selfReport,
+    lifeContexts: lifeContext.week,
+    lifeContextRecent: lifeContext.recent,
     ...m,
     ...ins,
     recommendations: [synthesis.experiment],

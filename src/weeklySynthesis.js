@@ -5,8 +5,11 @@ const SYSTEM = `너는 예은의 주간 생활 리포트를 쓰는 분석 파트
 자기보고 원문을 직접 인용하거나 개인적인 세부를 재노출하지 말고, 체감의 패턴만 요약한다.
 반드시 JSON 하나만 출력한다: {"opening_note":"1~2문장","integrated_insight":{"title":"짧은 제목","detail":"2~4문장"},"experiment":{"title":"행동 하나","detail":"검증할 관찰 기준을 포함한 1~2문장"}}`;
 
-export async function synthesizeWeekly({ metrics, analysis, selfReports, history }) {
-  const facts = buildFacts(metrics, analysis, selfReports, history);
+const LIFE_CONTEXT_SYSTEM = `생활 업데이트는 캘린더에 없는 최신 실제 상태다. 충돌하면 더 최근의 생활 업데이트를 우선한다.
+생활 업데이트 원문은 비공개 분석 근거다. 원문을 인용하거나 정확한 위치, 회사·인물 이름, 구체적인 건강 정보를 공개 문장에 노출하지 말고 패턴과 계획 대비 실제의 차이만 요약한다.`;
+
+export async function synthesizeWeekly({ metrics, analysis, selfReports, history, lifeContexts = [], lifeContextRecent = [] }) {
+  const facts = buildFacts(metrics, analysis, selfReports, history, lifeContexts, lifeContextRecent);
   const fallback = fallbackSynthesis(metrics, analysis);
   if (!process.env.ANTHROPIC_API_KEY) return { ...fallback, source:'fallback' };
   try {
@@ -21,7 +24,7 @@ export async function synthesizeWeekly({ metrics, analysis, selfReports, history
         model:process.env.WEEKLY_MODEL || process.env.NOTE_MODEL || 'claude-sonnet-4-6',
         max_tokens:700,
         temperature:0.5,
-        system:SYSTEM,
+        system:`${SYSTEM}\n${LIFE_CONTEXT_SYSTEM}`,
         messages:[{role:'user',content:`구조화된 이번 주 사실:\n${JSON.stringify(facts,null,2)}`}],
       }),
     });
@@ -42,13 +45,16 @@ export async function synthesizeWeekly({ metrics, analysis, selfReports, history
   }
 }
 
-function buildFacts(m, analysis, selfReports, history) {
+function buildFacts(m, analysis, selfReports, history, lifeContexts, lifeContextRecent) {
   return {
     sleep:{average:m.sleepAvg,minimum:m.sleepMin,known:m.sleepKnown,confidence:m.sleepKnown?'actual':'estimate'},
     changes:analysis.changes,
     selected_special_events:analysis.notableEvents,
     all_calendar_events:m.eventHistory,
     self_reports:selfReports,
+    life_context_summary:analysis.lifeContext,
+    weekly_life_context:compactLifeContext(lifeContexts),
+    recent_life_context:compactLifeContext(lifeContextRecent),
     next_week:analysis.preview,
     candidate_experiment:analysis.experimentCandidate,
     recent_report_topics:history.slice(-4).map((row)=>({week:row.week,topics:row.insightTopics||[],insight:row.integratedInsight||null})),
@@ -56,7 +62,22 @@ function buildFacts(m, analysis, selfReports, history) {
   };
 }
 
+function compactLifeContext(rows) {
+  return (rows || []).slice(-30).map(({ text, starts_on, expires_on, created_at, carried_in }) =>
+    ({ text, starts_on, expires_on, created_at, carried_in:Boolean(carried_in) }));
+}
+
 function fallbackSynthesis(m, analysis) {
+  if (analysis.lifeContext?.present) {
+    const life=analysis.lifeContext;
+    const change=analysis.changes[0];
+    const confidence=m.sleepKnown?'실제 수면까지 확인한 해석입니다.':'수면은 추정치이므로 회복 상태는 단정하지 않았습니다.';
+    return {
+      openingNote:{text:`생활 업데이트 ${life.count}건이 캘린더 밖의 실제 상태를 보완한 한 주였습니다. 계획보다 실제로 달라진 맥락부터 살펴보세요.`,source:'fallback'},
+      integratedInsight:{title:'계획과 실제를 함께 읽은 한 주',detail:`${change?.detail||'비교 기준을 쌓고 있습니다.'} ${life.detail} 캘린더만으로 설명되지 않는 차이를 이 맥락과 함께 해석했습니다. ${confidence}`,source:'fallback'},
+      experiment:{...analysis.experimentCandidate,source:'fallback'},
+    };
+  }
   const change=analysis.changes[0]; const event=analysis.notableEvents.items[0];
   const concrete=event?`${event.title} — ${event.reasons.join(', ')}`:change?.title||'이번 주의 리듬';
   const confidence=m.sleepKnown?'실제 수면까지 확인된 해석입니다.':'수면은 추정치라 회복 여부는 판단하지 않았습니다.';

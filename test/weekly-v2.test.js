@@ -6,6 +6,7 @@ import path from 'node:path';
 import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
 import { analyze } from '../src/weeklyAnalysis.js';
 import { publicReport, appendHistory, appendPrivateEventHistory } from '../src/renderReportV2.js';
+import { loadLifeContext, summarizeLifeContext } from '../src/lifeContext.js';
 
 const cfg = loadConfig('./config');
 const start = '2026-06-08';
@@ -72,6 +73,9 @@ test('public payload excludes raw reports and full event history', () => {
   const safe = publicReport({
     selfReports:[{date:'2026-06-08',note:'민감한 자기보고'}],
     eventHistory:[{title:'전체 원문 일정'}],
+    lifeContexts:[{text:'이미 양평에 와 있음'}],
+    lifeContextRecent:[{text:'몸 상태가 좋지 않음'}],
+    lifeContext:{present:true,count:2,days:1,planCorrections:1,bodySignals:1,workSignals:0,themeCounts:{location:1,body:1},topThemes:[],carriedCount:0,detail:'안전한 집계',raw:'노출 금지'},
     spotlight:{rows:[{label:'전체 원문 일정'}]},
     special:[{title:'전체 원문 일정'}],
     subjective:{gap:{text:'요약',note:'민감한 자기보고',distance:2}},
@@ -79,11 +83,46 @@ test('public payload excludes raw reports and full event history', () => {
   });
   assert.equal(safe.selfReports, undefined);
   assert.equal(safe.eventHistory, undefined);
+  assert.equal(safe.lifeContexts, undefined);
+  assert.equal(safe.lifeContextRecent, undefined);
+  assert.equal(safe.lifeContext.raw, undefined);
   assert.equal(safe.spotlight, undefined);
   assert.equal(safe.special, undefined);
   assert.equal(safe.subjective.gap.note, undefined);
   assert.equal(safe.notableEvents.items[0].calendar, undefined);
   assert.equal(safe.notableEvents.items[0].title, '선택된 특별 일정');
+});
+
+test('life context loader selects the week and summarizes private updates', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'life-context-'));
+  const file = path.join(dir, 'now-context.json');
+  fs.writeFileSync(file, JSON.stringify([
+    {id:'a',text:'이미 양평에 와 있어서 내일 이동 계획은 필요 없음',starts_on:'2026-06-09',expires_on:'2026-06-11'},
+    {id:'b',text:'몸이 많이 피곤하고 회사 마감 이슈가 큼',starts_on:'2026-06-10',expires_on:'2026-06-12'},
+    {id:'c',text:'다음 달 정보',starts_on:'2026-07-01',expires_on:'2026-07-02'},
+  ]));
+  const loaded = loadLifeContext({path:file,range:{startLocal:'2026-06-08',endLocalExclusive:'2026-06-15'}});
+  assert.equal(loaded.week.length, 2);
+  assert.equal(loaded.summary.count, 2);
+  assert.equal(loaded.summary.planCorrections, 1);
+  assert.equal(loaded.summary.bodySignals, 1);
+  assert.equal(loaded.summary.workSignals, 1);
+  fs.rmSync(dir, {recursive:true,force:true});
+});
+
+test('weekly analysis persists only aggregate life-context history', () => {
+  const metrics = withTrends(buildWeek([], cfg, null, start), []);
+  const updates = [
+    {text:'이미 현지에 와 있어서 이동할 필요 없음',starts_on:'2026-06-09'},
+    {text:'몸이 피곤함',starts_on:'2026-06-10'},
+  ];
+  const result = analyze(metrics, [{week:'2026-W23',lifeContextCount:0,buckets:{}}], [], [], cfg, cfg.catmap, {sleepKnown:false,lifeContexts:updates,lifeContextRecent:[...updates,{text:'지난주 마음이 불안함',starts_on:'2026-06-02'}]});
+  assert.equal(result.lifeContext.count, 2);
+  assert.equal(result.historyRow.lifeContextCount, 2);
+  assert.equal(result.historyRow.lifeContextPlanCorrections, 1);
+  assert.equal(result.lifeContext.recentCount, 3);
+  assert.equal(result.historyRow.text, undefined);
+  assert.equal(summarizeLifeContext(updates).bodySignals, 1);
 });
 
 test('a routine is notable only in the week it starts', () => {

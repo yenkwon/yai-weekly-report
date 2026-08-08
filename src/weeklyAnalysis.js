@@ -1,4 +1,5 @@
 // Deterministic facts for the weekly report. The LLM writes prose, not numbers.
+import { summarizeLifeContext } from './lifeContext.js';
 const KO = { mon:'월', tue:'화', wed:'수', thu:'목', fri:'금', sat:'토', sun:'일' };
 const DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
 const r1 = (n) => Math.round(n * 10) / 10;
@@ -75,6 +76,32 @@ function changesFor(m, history, selfPct) {
     detail:`${change.weekDelta==null?'지난주 비교 없음':`지난주보다 ${signed(change.weekDelta)}${change.unit}`} · ${change.baseline==null?'4주 기준선 축적 중':`최근 4주 평균 ${change.baseline}${change.unit} 대비 ${signed(change.baselineDelta)}${change.unit}`}${change.confidence==='estimate'?' · 수면은 추정치':''}` }));
 }
 
+function lifeContextChange(summary, history) {
+  const previous = history.at(-1);
+  const previousValue = Number.isFinite(previous?.lifeContextCount) ? previous.lifeContextCount : null;
+  const values = history.slice(-4).map((row) => row.lifeContextCount).filter(Number.isFinite);
+  const baseline = values.length ? r1(mean(values)) : null;
+  const weekDelta = previousValue == null ? null : summary.count - previousValue;
+  const baselineDelta = baseline == null ? null : r1(summary.count - baseline);
+  const magnitude = Math.max(Math.abs(weekDelta || 0), Math.abs(baselineDelta || 0));
+  const significant = magnitude >= 2 || summary.planCorrections > 0 || summary.bodySignals > 0;
+  return {
+    key:'life_context',
+    label:'생활 업데이트',
+    value:summary.count,
+    unit:'건',
+    weekDelta,
+    baseline,
+    baselineDelta,
+    significant,
+    confidence:'measured',
+    score:Math.max(magnitude / 2, summary.planCorrections, summary.bodySignals, summary.present ? 0.5 : 0),
+    tone:significant ? 'up' : 'flat',
+    title:`생활 업데이트 ${summary.count}건`,
+    detail:`${weekDelta == null ? '지난주 비교 기준 없음' : `지난주보다 ${signed(weekDelta)}건`} · ${baseline == null ? '최근 4주 기준 축적 중' : `최근 4주 평균 ${baseline}건 대비 ${signed(baselineDelta)}건`} · 계획 정정 ${summary.planCorrections}건 · 몸 상태 신호 ${summary.bodySignals}건`,
+  };
+}
+
 function notableFor(m, history) {
   const priorRows = history.slice(-4).filter((row) => Array.isArray(row.eventHistory));
   const priorByTitle = new Map();
@@ -126,7 +153,9 @@ function preview(nextEvents, catmap) {
   return { title:'다음 주 미리보기', detail:parts.length?`${parts.join(' · ')}.`:'시간으로 계산할 사역 일정 충돌은 없습니다.', flags, banners:banners.slice(0,3), dayHours };
 }
 
-function chooseExperiment(changes, notable, nextWeek, split) {
+function chooseExperiment(changes, notable, nextWeek, split, lifeContext) {
+  if (lifeContext.bodySignals >= 2) return {p:1,title:'몸 상태와 일정 강도를 한 번 연결해 보기',detail:'몸 상태 신호가 나온 날의 구속 시간과 저녁 체감을 한 번만 함께 확인해, 다음 주 일정 강도를 조정할 근거로 남깁니다.'};
+  if (lifeContext.planCorrections >= 2) return {p:1,title:'계획과 실제가 달라진 순간 하나 줄이기',detail:'반복해서 바뀐 계획 하나만 골라 캘린더보다 최신 생활 상태를 먼저 확인했을 때 불필요한 준비가 줄었는지 살펴봅니다.'};
   if (nextWeek.flags.length) return {p:1,title:`${nextWeek.flags[0]} 전후 30분 비우기`,detail:'앞뒤 일정 하나를 줄여 실제 여백이 생기는지 한 주만 확인합니다.'};
   const newRoutine=notable.items.find((item)=>item.reasons.includes('이번 주 시작한 캘린더 밖 루틴'));
   if (newRoutine) return {p:1,title:`${newRoutine.title} 10분 슬롯 고정`,detail:'새 루틴이 다른 일정에 밀리지 않는지 한 주만 같은 시간에 실행해 봅니다.'};
@@ -143,14 +172,25 @@ export function analyze(m, history, reports, nextEvents, cfg, catmap, options={}
   const split=othersVsSelf(m,cfg); const recovery=recoveryStatus(m,history,cfg,m.sleepKnown);
   const rhythm={key:'rhythm',tone:'note',variance:r1(std(DAYS.map((d)=>m.committedByDay[d]))),lateNight:m._lateNightCount||0,
     title:`요일 편차 ${r1(std(DAYS.map((d)=>m.committedByDay[d])))}h · 밤 10시 이후 ${m._lateNightCount||0}건`, detail:`가장 긴 날은 ${KO[m.peakDay]}요일 ${m.peakCommitted}h였습니다.`};
-  const perceived=perceivedVsActual(m,reports); const changes=changesFor(m,history,split.selfPct);
+  const perceived=perceivedVsActual(m,reports);
+  const lifeContext=summarizeLifeContext(options.lifeContexts || []);
+  const recentLifeContext=summarizeLifeContext(options.lifeContextRecent || options.lifeContexts || []);
+  lifeContext.recentCount=recentLifeContext.count;
+  lifeContext.recentDays=recentLifeContext.days;
+  lifeContext.recentTopThemes=recentLifeContext.topThemes;
+  const baseChanges=changesFor(m,history,split.selfPct);
+  const changes=(lifeContext.present || history.some((row)=>Number.isFinite(row.lifeContextCount)))
+    ? [...baseChanges,lifeContextChange(lifeContext,history)].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,3)
+    : baseChanges;
   const notableEvents=notableFor(m,history); const nextWeek=preview(nextEvents,catmap);
-  const experimentCandidate=chooseExperiment(changes,notableEvents,nextWeek,split);
+  const experimentCandidate=chooseExperiment(changes,notableEvents,nextWeek,split,lifeContext);
   return { changes, notableEvents, discovery:{title:changes[0]?.title||'비교 기준을 쌓는 주',detail:changes[0]?.detail||'다음 주부터 비교합니다.'},
-    lenses:[split,recovery,rhythm,perceived], preview:nextWeek, recommendations:[experimentCandidate], experimentCandidate,
+    lenses:[split,recovery,rhythm,perceived], lifeContext, preview:nextWeek, recommendations:[experimentCandidate], experimentCandidate,
     subjective:{present:perceived.present,avgScore:perceived.avgScore,count:perceived.count,gap:perceived.gap,detail:perceived.detail},
     historyRow:{othersPct:split.othersPct,selfPct:split.selfPct,recoveryWeekly:recovery.weekly,recoveryBalance:recovery.balance,sleepKnown:m.sleepKnown,
       lateNightCount:m._lateNightCount||0,loadStdev:rhythm.variance,avgScore:perceived.avgScore,
+      lifeContextCount:lifeContext.count,lifeContextDays:lifeContext.days,lifeContextThemeCounts:lifeContext.themeCounts,
+      lifeContextPlanCorrections:lifeContext.planCorrections,lifeContextBodySignals:lifeContext.bodySignals,
       insightTopics:[changes[0]?.key,...notableEvents.items.slice(0,2).map((item)=>eventKey(item.title))].filter(Boolean)} };
 }
 

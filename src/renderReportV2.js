@@ -18,6 +18,7 @@ export function summaryText(report, link) {
     '',
     `💡 *${report.integratedInsight.title}*`,
     report.integratedInsight.detail,
+    ...(report.lifeContext?.present ? ['', `🌿 *생활 맥락* ${report.lifeContext.detail}`] : []),
     '',
     `📅 ${report.preview.title}: ${report.preview.detail}`,
     ...(experiment ? ['', `🧪 *다음 주 실험 하나* ${experiment.title}`, experiment.detail] : []),
@@ -36,6 +37,8 @@ export function renderHTML(report, templatePath = './templates/dashboard-v2.html
 export function publicReport(report) {
   const safe = structuredClone(report);
   delete safe.selfReports;
+  delete safe.lifeContexts;
+  delete safe.lifeContextRecent;
   delete safe.eventHistory;
   delete safe.spotlight;
   delete safe.special;
@@ -43,6 +46,10 @@ export function publicReport(report) {
   if (safe.subjective?.gap) {
     delete safe.subjective.gap.note;
     delete safe.subjective.gap.distance;
+  }
+  if (safe.lifeContext) {
+    const { present, count, days, planCorrections, bodySignals, workSignals, themeCounts, topThemes, carriedCount, recentCount, recentDays, recentTopThemes, detail } = safe.lifeContext;
+    safe.lifeContext = { present, count, days, planCorrections, bodySignals, workSignals, themeCounts, topThemes, carriedCount, recentCount, recentDays, recentTopThemes, detail };
   }
   if (safe.notableEvents?.items) {
     safe.notableEvents.items = safe.notableEvents.items.map(({ title, category, start, end, durationHours, allDay, periodEvent, day, reasons }) =>
