@@ -257,5 +257,59 @@
       "청소년/청년 수련회"
     ],
     "integratedInsight": "밀도는 높았지만 하루는 고르게 분산됐다"
+  },
+  {
+    "week": "2026-W32",
+    "peakCommitted": 15.3,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 8.8,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 40.2,
+      "commute": 8.8,
+      "ministry": 26.4,
+      "worship": 3,
+      "career": 0,
+      "growth": 0,
+      "social": 0,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 42.8
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 88,
+    "selfPct": 12,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 2,
+    "loadStdev": 2.6,
+    "avgScore": 4,
+    "lifeContextCount": 1,
+    "lifeContextDays": 1,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 1,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 1,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "모두의 수련회",
+      "모두의 수련회"
+    ],
+    "integratedInsight": "거리감이 오해가 아니었다는 확인"
   }
 ]
