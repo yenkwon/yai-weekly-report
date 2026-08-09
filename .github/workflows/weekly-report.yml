@@ -41,6 +41,7 @@ jobs:
           sparse-checkout: |
             store/self-reports.json
             store/now-context.json
+            store/life-baseline.json
             store/weekly-event-history.json
             config/non-calendar-routines.json
           sparse-checkout-cone-mode: false
@@ -94,6 +95,7 @@ jobs:
           SELF_REPORT_SOURCE: telegram
           WORKLIFE_SELF_REPORTS_PATH: worklife-agent/store/self-reports.json
           WORKLIFE_NOW_CONTEXT_PATH: worklife-agent/store/now-context.json
+          WORKLIFE_LIFE_BASELINE_PATH: worklife-agent/store/life-baseline.json
           WORKLIFE_ROUTINES_PATH: worklife-agent/config/non-calendar-routines.json
           PRIVATE_EVENT_HISTORY_PATH: worklife-agent/store/weekly-event-history.json
           PUBLISH_DIR: docs

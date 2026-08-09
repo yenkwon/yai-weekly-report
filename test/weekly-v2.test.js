@@ -7,6 +7,7 @@ import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
 import { analyze } from '../src/weeklyAnalysis.js';
 import { publicReport, appendHistory, appendPrivateEventHistory } from '../src/renderReportV2.js';
 import { loadLifeContext, summarizeLifeContext } from '../src/lifeContext.js';
+import { applyLifeBaselines, compactLifeBaselines, loadLifeBaselines } from '../src/lifeBaseline.js';
 
 const cfg = loadConfig('./config');
 const start = '2026-06-08';
@@ -75,6 +76,8 @@ test('public payload excludes raw reports and full event history', () => {
     eventHistory:[{title:'전체 원문 일정'}],
     lifeContexts:[{text:'이미 양평에 와 있음'}],
     lifeContextRecent:[{text:'몸 상태가 좋지 않음'}],
+    lifeBaselines:[{raw:'영구 기준 원문'}],
+    rememberedBaselines:[{summary:'비공개 기준 요약'}],
     lifeContext:{present:true,count:2,days:1,planCorrections:1,bodySignals:1,workSignals:0,themeCounts:{location:1,body:1},topThemes:[],carriedCount:0,detail:'안전한 집계',raw:'노출 금지'},
     spotlight:{rows:[{label:'전체 원문 일정'}]},
     special:[{title:'전체 원문 일정'}],
@@ -85,6 +88,8 @@ test('public payload excludes raw reports and full event history', () => {
   assert.equal(safe.eventHistory, undefined);
   assert.equal(safe.lifeContexts, undefined);
   assert.equal(safe.lifeContextRecent, undefined);
+  assert.equal(safe.lifeBaselines, undefined);
+  assert.equal(safe.rememberedBaselines, undefined);
   assert.equal(safe.lifeContext.raw, undefined);
   assert.equal(safe.spotlight, undefined);
   assert.equal(safe.special, undefined);
@@ -136,6 +141,29 @@ test('a routine is notable only in the week it starts', () => {
   const item = result.notableEvents.items.find((event) => event.title === '새 브리핑');
   assert.ok(item);
   assert.deepEqual(item.reasons, ['이번 주 시작한 캘린더 밖 루틴']);
+});
+
+test('confirmed life baseline overrides Sunday ministry and return travel', () => {
+  const baselines = [{
+    id:'sunday-baseline', active:true, confirmed_at:'2026-06-01T00:00:00.000Z',
+    proposal:{kind:'schedule',summary:'주일 사역과 귀가',schedule_blocks:[
+      {days:['sun'],title:'주일 사역',start:'08:00',end:'17:00',duration_minutes:540,category:'ministry',location:'양평'},
+      {days:['sun'],title:'귀가',start:'17:00',end:'18:30',duration_minutes:90,category:'commute',from:'양평',to:'산본'},
+    ]},
+  }];
+  const applied = applyLifeBaselines(cfg, baselines);
+  assert.equal(applied.routine.fixedMinistry.sunChurch.start, '08:00');
+  assert.equal(applied.routine.fixedMinistry.sunChurch.end, '17:00');
+  assert.equal(applied.routine.fixedMinistry.sunChurch.driveHomeHours, 1.5);
+  assert.deepEqual(compactLifeBaselines(baselines), [{id:'sunday-baseline',kind:'schedule',summary:'주일 사역과 귀가'}]);
+});
+
+test('life baseline loader keeps active entries private and structured', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'life-baseline-'));
+  const file = path.join(dir, 'life-baseline.json');
+  fs.writeFileSync(file, JSON.stringify([{id:'a',active:true,proposal:{summary:'활성'}},{id:'b',active:false,proposal:{summary:'해제'}}]));
+  assert.deepEqual(loadLifeBaselines({path:file}).map((item) => item.id), ['a']);
+  fs.rmSync(dir, {recursive:true,force:true});
 });
 
 test('raw event titles are written only to the private history file', () => {

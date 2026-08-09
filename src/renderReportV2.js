@@ -39,6 +39,8 @@ export function publicReport(report) {
   delete safe.selfReports;
   delete safe.lifeContexts;
   delete safe.lifeContextRecent;
+  delete safe.lifeBaselines;
+  delete safe.rememberedBaselines;
   delete safe.eventHistory;
   delete safe.spotlight;
   delete safe.special;

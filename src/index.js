@@ -9,15 +9,18 @@ import { summaryText, renderHTML, appendHistory, appendPrivateEventHistory } fro
 import { sendReport, sendText, readSleepReply } from './telegram.js';
 import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
 import { loadLifeContext } from './lifeContext.js';
+import { applyLifeBaselines, compactLifeBaselines, loadLifeBaselines } from './lifeBaseline.js';
 
 const MODE = process.argv[2] || 'send';
 const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
 const PUBLISH_DIR = process.env.PUBLISH_DIR || 'docs';
 const PRIVATE_EVENT_HISTORY_PATH = process.env.PRIVATE_EVENT_HISTORY_PATH || '../yai-worklife-agent/store/weekly-event-history.json';
 const WORKLIFE_NOW_CONTEXT_PATH = process.env.WORKLIFE_NOW_CONTEXT_PATH || '../yai-worklife-agent/store/now-context.json';
+const WORKLIFE_LIFE_BASELINE_PATH = process.env.WORKLIFE_LIFE_BASELINE_PATH || '../yai-worklife-agent/store/life-baseline.json';
 const nextRange = (r) => ({ timeMin:r.timeMax, timeMax:new Date(new Date(r.timeMax).getTime()+7*864e5).toISOString() });
 
-const cfg = loadConfig('./config');
+const lifeBaselines = loadLifeBaselines({ path:WORKLIFE_LIFE_BASELINE_PATH });
+const cfg = applyLifeBaselines(loadConfig('./config'), lifeBaselines);
 const range = lastWeekRange(cfg.routine.timezone);
 const week = range.week;
 const lifeContext = loadLifeContext({ path:WORKLIFE_NOW_CONTEXT_PATH, range });
@@ -48,6 +51,7 @@ async function build(sleepOverride=null, sleepKnown=false) {
     history:priorHistory,
     lifeContexts:lifeContext.week,
     lifeContextRecent:lifeContext.recent,
+    rememberedBaselines:compactLifeBaselines(lifeBaselines),
   });
   const report = {
     week,

@@ -6,10 +6,10 @@ const SYSTEM = `너는 예은의 주간 생활 리포트를 쓰는 분석 파트
 반드시 JSON 하나만 출력한다: {"opening_note":"1~2문장","integrated_insight":{"title":"짧은 제목","detail":"2~4문장"},"experiment":{"title":"행동 하나","detail":"검증할 관찰 기준을 포함한 1~2문장"}}`;
 
 const LIFE_CONTEXT_SYSTEM = `생활 업데이트는 캘린더에 없는 최신 실제 상태다. 충돌하면 더 최근의 생활 업데이트를 우선한다.
-생활 업데이트 원문은 비공개 분석 근거다. 원문을 인용하거나 정확한 위치, 회사·인물 이름, 구체적인 건강 정보를 공개 문장에 노출하지 말고 패턴과 계획 대비 실제의 차이만 요약한다.`;
+생활 업데이트와 영구 기준은 비공개 분석 근거다. 원문을 인용하거나 정확한 위치, 회사·인물 이름, 구체적인 건강 정보를 공개 문장에 노출하지 말고 패턴과 계획 대비 실제의 차이만 요약한다.`;
 
-export async function synthesizeWeekly({ metrics, analysis, selfReports, history, lifeContexts = [], lifeContextRecent = [] }) {
-  const facts = buildFacts(metrics, analysis, selfReports, history, lifeContexts, lifeContextRecent);
+export async function synthesizeWeekly({ metrics, analysis, selfReports, history, lifeContexts = [], lifeContextRecent = [], rememberedBaselines = [] }) {
+  const facts = buildFacts(metrics, analysis, selfReports, history, lifeContexts, lifeContextRecent, rememberedBaselines);
   const fallback = fallbackSynthesis(metrics, analysis);
   if (!process.env.ANTHROPIC_API_KEY) return { ...fallback, source:'fallback' };
   try {
@@ -45,7 +45,7 @@ export async function synthesizeWeekly({ metrics, analysis, selfReports, history
   }
 }
 
-function buildFacts(m, analysis, selfReports, history, lifeContexts, lifeContextRecent) {
+function buildFacts(m, analysis, selfReports, history, lifeContexts, lifeContextRecent, rememberedBaselines) {
   return {
     sleep:{average:m.sleepAvg,minimum:m.sleepMin,known:m.sleepKnown,confidence:m.sleepKnown?'actual':'estimate'},
     changes:analysis.changes,
@@ -55,6 +55,7 @@ function buildFacts(m, analysis, selfReports, history, lifeContexts, lifeContext
     life_context_summary:analysis.lifeContext,
     weekly_life_context:compactLifeContext(lifeContexts),
     recent_life_context:compactLifeContext(lifeContextRecent),
+    remembered_baselines:rememberedBaselines,
     next_week:analysis.preview,
     candidate_experiment:analysis.experimentCandidate,
     recent_report_topics:history.slice(-4).map((row)=>({week:row.week,topics:row.insightTopics||[],insight:row.integratedInsight||null})),
