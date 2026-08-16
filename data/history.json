@@ -311,5 +311,59 @@
       "모두의 수련회"
     ],
     "integratedInsight": "거리감이 오해가 아니었다는 확인"
+  },
+  {
+    "week": "2026-W33",
+    "peakCommitted": 14.8,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 8.3,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 45.4,
+      "commute": 8.3,
+      "ministry": 11.5,
+      "worship": 3,
+      "career": 0,
+      "growth": 2,
+      "social": 0,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 51.1
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 75,
+    "selfPct": 25,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 0,
+    "loadStdev": 3.7,
+    "avgScore": 3.9,
+    "lifeContextCount": 1,
+    "lifeContextDays": 1,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 1,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 0,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "🎬사랑의 기적",
+      "민영세 전도사 - 목요예배"
+    ],
+    "integratedInsight": "효율이 생긴 자리에서 질문이 자란다"
   }
 ]
