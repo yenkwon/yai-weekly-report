@@ -39,5 +39,5 @@ console.log('\n=== SUBJECTIVE present:', ins.subjective.present, '===');
 const out = process.argv[2]==='self' ? '주간보고_샘플_대시보드.html' : '주간보고_샘플_객관만.html';
 const outputDir = process.env.SAMPLE_OUTPUT_DIR || './sample/output';
 fs.mkdirSync(outputDir, { recursive:true });
-fs.writeFileSync(`${outputDir}/${out}`, renderHTML(report));
+fs.writeFileSync(`${outputDir}/${out}`, renderHTML(report, { history:[...history, { week:'2026-W25', ...m, ...ins.historyRow }] }));
 console.log('\n[ok] wrote', `${outputDir}/${out}`);
