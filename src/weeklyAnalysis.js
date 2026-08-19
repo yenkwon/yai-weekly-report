@@ -138,19 +138,45 @@ function notableFor(m, history) {
 }
 
 function preview(nextEvents, catmap) {
-  if (!nextEvents?.length) return { title:'다음 주 미리보기', detail:'등록된 다음 주 일정이 없습니다.', flags:[], banners:[] };
-  const dayHours=Object.fromEntries(DAYS.map((day)=>[day,0])); const banners=[];
+  const empty=Object.fromEntries(DAYS.map((day)=>[day,0]));
+  if (!nextEvents?.length) return { title:'다음 주 미리보기', detail:'등록된 다음 주 일정이 없습니다.',
+    flags:[], banners:[], dayHours:{...empty}, loadByDay:{...empty}, bucketHours:{}, eventCount:0, totalHours:0,
+    heaviestDay:null, lightestDay:null, openDays:DAYS.length };
+
+  // dayHours stays ministry-only: chooseExperiment and the ministry-overload
+  // flags are calibrated against it. loadByDay is the all-category view.
+  const dayHours={...empty}, loadByDay={...empty}, bucketHours={}, banners=[];
+  let eventCount=0;
   for (const event of nextEvents) {
     const spanHours=(new Date(event.end)-new Date(event.start))/3.6e6;
     if (event.allDay || spanHours>=24) { banners.push(event.title); continue; }
-    if (!['ministry','worship'].includes(bucketOf(event,catmap))) continue;
-    for (const segment of splitAcrossKstDays(event)) dayHours[segment.day]+=segment.hours;
+    const bucket=bucketOf(event,catmap);
+    eventCount+=1;
+    for (const segment of splitAcrossKstDays(event)) {
+      loadByDay[segment.day]+=segment.hours;
+      bucketHours[bucket]=(bucketHours[bucket]||0)+segment.hours;
+      if (['ministry','worship'].includes(bucket)) dayHours[segment.day]+=segment.hours;
+    }
   }
-  const flags=DAYS.filter((day)=>dayHours[day]>=8).map((day)=>`${KO[day]}요일 사역 ${r1(dayHours[day])}h`);
-  const heavy=DAYS.reduce((a,b)=>dayHours[b]>dayHours[a]?b:a); const parts=[];
-  if (dayHours[heavy]>0) parts.push(`가장 무거운 날은 ${KO[heavy]}요일 사역 ${r1(dayHours[heavy])}h`);
+  for (const day of DAYS) { dayHours[day]=r1(dayHours[day]); loadByDay[day]=r1(loadByDay[day]); }
+  for (const key of Object.keys(bucketHours)) bucketHours[key]=r1(bucketHours[key]);
+
+  const flags=DAYS.filter((day)=>dayHours[day]>=8).map((day)=>`${KO[day]}요일 사역 ${dayHours[day]}h`);
+  const heavy=DAYS.reduce((a,b)=>dayHours[b]>dayHours[a]?b:a);
+  const heaviestDay=DAYS.reduce((a,b)=>loadByDay[b]>loadByDay[a]?b:a);
+  const lightestDay=DAYS.reduce((a,b)=>loadByDay[b]<loadByDay[a]?b:a);
+  const totalHours=r1(DAYS.reduce((sum,day)=>sum+loadByDay[day],0));
+  const openDays=DAYS.filter((day)=>loadByDay[day]===0).length;
+
+  const parts=[];
+  if (dayHours[heavy]>0) parts.push(`가장 무거운 날은 ${KO[heavy]}요일 사역 ${dayHours[heavy]}h`);
+  else if (loadByDay[heaviestDay]>0) parts.push(`가장 무거운 날은 ${KO[heaviestDay]}요일 ${loadByDay[heaviestDay]}h`);
   if (banners.length) parts.push(`종일·기간 일정 ${banners.slice(0,2).join(', ')}`);
-  return { title:'다음 주 미리보기', detail:parts.length?`${parts.join(' · ')}.`:'시간으로 계산할 사역 일정 충돌은 없습니다.', flags, banners:banners.slice(0,3), dayHours };
+  if (openDays) parts.push(`일정이 비어 있는 날 ${openDays}일`);
+  return { title:'다음 주 미리보기',
+    detail:parts.length?`${parts.join(' · ')}.`:'시간으로 계산할 사역 일정 충돌은 없습니다.',
+    flags, banners:banners.slice(0,3), dayHours, loadByDay, bucketHours, eventCount, totalHours,
+    heaviestDay, lightestDay, openDays };
 }
 
 function chooseExperiment(changes, notable, nextWeek, split, lifeContext) {
