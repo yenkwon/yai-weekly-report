@@ -76,13 +76,15 @@ async function build(sleepOverride=null, sleepKnown=false) {
     recommendations: [synthesis.experiment],
   };
   fs.mkdirSync(`./${PUBLISH_DIR}/weeks`, { recursive: true });
-  const html = renderHTML(report);
-  fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);
-  fs.writeFileSync(`./${PUBLISH_DIR}/weeks/${week}.html`, html);
-  appendHistory('./data/history.json', week, m, {
+  // Append first so the dashboard's 8-week trend includes this week. The row is
+  // replaced by week key, so a reconcile rebuild stays idempotent.
+  const updatedHistory = appendHistory('./data/history.json', week, m, {
     ...ins.historyRow,
     integratedInsight: synthesis.integratedInsight.title,
   });
+  const html = renderHTML(report, { history: updatedHistory });
+  fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);
+  fs.writeFileSync(`./${PUBLISH_DIR}/weeks/${week}.html`, html);
   appendPrivateEventHistory(PRIVATE_EVENT_HISTORY_PATH, week, m.eventHistory);
   return { report, link: `${PAGES}/weeks/${week}.html` };
 }

@@ -14,7 +14,9 @@
 ```
 
 ## 무엇을 보여주나
+- **이번 주의 모양** — 24시간 × 7일 스택 타임라인. 공개 페이지에는 30분 단위로 반올림한 값만 싣습니다.
 - **이번 주 달라진 3가지** — 지난주와 최근 4주 평균을 함께 표시합니다.
+- **최근 8주 흐름** — 수면·최대 부하·체감을 각각 따로 그립니다. 단위가 다른 지표를 한 축에 겹치지 않습니다.
 - **새롭거나 특별했던 일정** — 원문 일정 이력으로 첫 등장, 평소보다 긴 일정, 요일 이동, 심야·종일 일정을 찾습니다.
 - **체감과 실제** — 자기보고와 일정 부하를 연결하되, 수면이 추정치면 회복 여부를 단정하거나 부채를 누적하지 않습니다.
 - **통합 인사이트** — 계산된 사실을 Claude가 한 번에 오프닝·해석·다음 주 실험 하나로 작성합니다. API가 없거나 실패하면 계산형 폴백을 사용합니다.
@@ -42,10 +44,12 @@
 | `src/selfReport.js` | 자기보고 어댑터(Null/Obsidian/Telegram/Mock) |
 | `src/fetchCalendar.js` | Google Calendar에서 지난주·다음주 이벤트 |
 | `src/renderReportV2.js` | 텔레그램 요약 + 공개 데이터 최소화 + history 적립 |
+| `src/publicPayload.js` | 공개용 가공(타임라인 30분 반올림·최근 8주 추세 화이트리스트) |
 
 캘린더에 넣지 않는 반복 일정은 `yai-worklife-agent/config/non-calendar-routines.json`을 단일 원천으로 사용합니다. 로컬에서는 인접 저장소를 자동 탐색하고, GitHub Actions에서는 `WORKLIFE_ROUTINES_PATH`로 체크아웃한 파일을 읽어 주간 시간 집계와 요약에 반영합니다.
 | `src/index.js` | send / reconcile 오케스트레이터 |
-| `templates/dashboard-v2.html` | 변화와 특별 일정을 먼저 보여주는 대시보드 |
+| `templates/dashboard-v3.html` | 타임라인·추세·렌즈까지 보여주는 현재 대시보드 |
+| `templates/dashboard-v2.html` | 이전 텍스트 중심 대시보드(롤백용, 미사용) |
 | `config/*.json` | 루틴·통근·회복목표 / 카테고리 매핑 |
 
 ## 셋업 (1회)
@@ -76,6 +80,8 @@ node sample\full-test.js self
 - 일정 **원문 제목, 캘린더명, 분류, 시작·종료, 소요시간**은 비공개 `yai-worklife-agent/store/weekly-event-history.json`에 저장합니다.
 - 참석자, 장소, 설명은 수집하거나 저장하지 않습니다.
 - GitHub Pages HTML에는 전체 일정 이력과 자기보고 원문을 넣지 않습니다. 선택된 특별 일정과 파생 인사이트만 표시합니다.
+- 대시보드 타임라인은 분 단위 `dayBlocks`가 아니라 **30분 단위로 반올림한 파생본**입니다. 원본은 공개 페이로드에서 삭제되고, 반올림·병합 규칙은 `test/weekly-v2.test.js`가 잠급니다.
+- 8주 추세는 `data/history.json`에서 **허용된 키만 복사**해 넣습니다. 상위 저장소에 새 필드가 생겨도 기본값은 비공개입니다.
 - GitHub Actions는 `WORKLIFE_REPO_TOKEN`으로 비공개 이력을 읽고 갱신한 뒤, 공개 리포트에는 필요한 파생 결과만 커밋합니다.
 
 ## 수동 보정 레이어

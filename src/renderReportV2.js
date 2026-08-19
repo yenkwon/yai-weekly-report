@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { coarsenTimeline, trendSlice } from './publicPayload.js';
 
 const reportLabel = (report) => report.weekLabel || report.week;
 
@@ -29,13 +30,18 @@ export function summaryText(report, link) {
   return lines.join('\n');
 }
 
-export function renderHTML(report, templatePath = './templates/dashboard-v2.html') {
+export function renderHTML(report, options = {}) {
+  const { templatePath = './templates/dashboard-v3.html', history } =
+    typeof options === 'string' ? { templatePath: options } : options;
   const template = fs.readFileSync(templatePath, 'utf8');
-  return template.replace('/*__WEEK_DATA__*/ null', serializeForScript(publicReport(report)));
+  return template.replace('/*__WEEK_DATA__*/ null', serializeForScript(publicReport(report, { history })));
 }
 
-export function publicReport(report) {
+export function publicReport(report, { history } = {}) {
   const safe = structuredClone(report);
+  // Derive before deleting, so the coarsened copy is the only path out.
+  const timeline = coarsenTimeline(safe.dayBlocks);
+  const trend = trendSlice(history);
   delete safe.selfReports;
   delete safe.lifeContexts;
   delete safe.lifeContextRecent;
@@ -45,6 +51,11 @@ export function publicReport(report) {
   delete safe.spotlight;
   delete safe.special;
   delete safe.dayBlocks;
+  // historyRow.insightTopics carries raw event titles and nothing renders it —
+  // every value it holds is already a top-level field.
+  delete safe.historyRow;
+  if (timeline) safe.timeline = timeline;
+  if (trend.length) safe.trend = trend;
   if (safe.subjective?.gap) {
     delete safe.subjective.gap.note;
     delete safe.subjective.gap.distance;
