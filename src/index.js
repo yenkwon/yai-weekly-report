@@ -1,4 +1,4 @@
-// index.js — orchestrator. `node src/index.js send` | `reconcile` | `publish`
+// index.js — orchestrator. `node src/index.js send` / `reconcile` / `publish`. Sending lives in notify.js.
 import fs from 'node:fs';
 import { loadConfig, buildWeek, withTrends } from './compute.js';
 import { lastWeekRange, fetchWeek } from './fetchCalendar.js';
@@ -10,6 +10,7 @@ import { sendReport, sendText, readSleepReply } from './telegram.js';
 import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
 import { loadLifeContext } from './lifeContext.js';
 import { applyLifeBaselines, compactLifeBaselines, loadLifeBaselines } from './lifeBaseline.js';
+
 
 const MODE = process.argv[2] || 'send';
 const PAGES = process.env.PAGES_BASE_URL || 'https://yenkwon.github.io/yai-weekly-report';
@@ -89,11 +90,26 @@ async function build(sleepOverride=null, sleepKnown=false) {
   return { report, link: `${PAGES}/weeks/${week}.html` };
 }
 
+// The dashboard is pushed and deployed by workflow steps that run after this
+// process exits, so with DEFER_NOTIFY the message is parked here and sent by a
+// later `notify` run instead. Without it, send immediately (local runs).
+const PENDING_PATH = './data/pending-message.json';
+const DEFER = process.env.DEFER_NOTIFY === '1';
+
+function park(kind, text, link) {
+  fs.writeFileSync(PENDING_PATH, JSON.stringify({ kind, week, text, link }, null, 2));
+  console.log('parked', { kind, week, link });
+}
+
 if (MODE === 'send') {
   const { report, link } = await build(null, false);
-  const msgId = await sendReport(summaryText(report, link));
-  fs.writeFileSync('./data/last-msg.json', JSON.stringify({ week, msgId }));
-  console.log('sent', { week, note: report.openingNote.source, peak: report.peakDay });
+  const text = summaryText(report, link);
+  if (DEFER) park('send', text, link);
+  else {
+    const msgId = await sendReport(text);
+    fs.writeFileSync('./data/last-msg.json', JSON.stringify({ week, msgId }));
+  }
+  console.log('built', { week, note: report.openingNote.source, peak: report.peakDay });
 } else if (MODE === 'publish') {
   const { report, link } = await build(null, false);
   console.log('published', { week, note:report.openingNote.source, link });
@@ -107,7 +123,9 @@ if (MODE === 'send') {
     process.exit(0);
   }
   const { report, link } = await build(sleep, Boolean(sleep));
-  await sendText(`${reconcileLabel({ sleep, corrections })} (${report.weekLabel || report.week})\n평균 수면 ${report.sleepAvg}h\n대시보드 갱신 → ${link}`);
+  const text = `${reconcileLabel({ sleep, corrections })} (${report.weekLabel || report.week})\n평균 수면 ${report.sleepAvg}h\n대시보드 갱신 → ${link}`;
+  if (DEFER) park('reconcile', text, link);
+  else await sendText(text);
   console.log('reconciled', { sleep, corrections: corrections.present });
 }
 

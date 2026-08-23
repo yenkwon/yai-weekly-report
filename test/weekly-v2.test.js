@@ -7,6 +7,7 @@ import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
 import { analyze } from '../src/weeklyAnalysis.js';
 import { publicReport, appendHistory, appendPrivateEventHistory } from '../src/renderReportV2.js';
 import { coarsenTimeline, trendSlice } from '../src/publicPayload.js';
+import { waitForUrl } from '../src/publish.js';
 import { loadLifeContext, summarizeLifeContext } from '../src/lifeContext.js';
 import { applyLifeBaselines, compactLifeBaselines, loadLifeBaselines } from '../src/lifeBaseline.js';
 
@@ -157,6 +158,51 @@ test('public payload swaps raw day blocks for the coarsened timeline', () => {
   assert.deepEqual(safe.timeline.mon, [[0,6,'sleep'],[6,24,'work']]);
   assert.equal(safe.trend.length, 1);
   assert.doesNotMatch(JSON.stringify(safe), /전체 원문 일정/);
+});
+
+// A fake clock, so these run instantly instead of polling for real minutes.
+function fakeClock() {
+  let t = 0;
+  return { now: () => t, sleep: async (ms) => { t += ms; } };
+}
+
+test('the link is not announced until the page it points at is live', async () => {
+  const clock = fakeClock();
+  const statuses = [404, 404, 404, 200];
+  let calls = 0;
+  const result = await waitForUrl('https://example.test/weeks/2026-W34.html', {
+    ...clock, intervalMs: 10_000, timeoutMs: 300_000,
+    fetchImpl: async () => { const s = statuses[calls++]; return { ok: s === 200, status: s }; },
+  });
+  assert.equal(result.live, true);
+  assert.equal(result.attempts, 4);
+  assert.equal(result.waitedMs, 30_000);
+});
+
+test('a page that never deploys gives up instead of hanging the run', async () => {
+  const clock = fakeClock();
+  const result = await waitForUrl('https://example.test/missing.html', {
+    ...clock, intervalMs: 10_000, timeoutMs: 60_000,
+    fetchImpl: async () => ({ ok: false, status: 404 }),
+  });
+  assert.equal(result.live, false);
+  assert.equal(result.status, 404);
+  assert.ok(result.waitedMs <= 60_000, `waited ${result.waitedMs}ms, past the timeout`);
+});
+
+test('a network error is retried rather than treated as deployed', async () => {
+  const clock = fakeClock();
+  let calls = 0;
+  const result = await waitForUrl('https://example.test/x.html', {
+    ...clock, intervalMs: 5_000, timeoutMs: 60_000,
+    fetchImpl: async () => {
+      calls += 1;
+      if (calls < 3) throw new Error('ENOTFOUND');
+      return { ok: true, status: 200 };
+    },
+  });
+  assert.equal(result.live, true);
+  assert.equal(result.attempts, 3);
 });
 
 test('life context loader selects the week and summarizes private updates', () => {
