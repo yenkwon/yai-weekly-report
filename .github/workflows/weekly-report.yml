@@ -44,9 +44,21 @@ jobs:
             store/life-baseline.json
             store/weekly-event-history.json
             config/non-calendar-routines.json
+            contracts/yai-personal-suite.v1.json
+            contracts/self-reports.v1.schema.json
+            contracts/now-context.v1.schema.json
+            contracts/life-baseline.v1.schema.json
+            contracts/non-calendar-routines.v1.schema.json
+            scripts/validate-json-schema.mjs
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v6
         with: { node-version: '24' }
+      - name: Validate worklife input contracts
+        run: |
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/self-reports.v1.schema.json --data worklife-agent/store/self-reports.json
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/now-context.v1.schema.json --data worklife-agent/store/now-context.json
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/life-baseline.v1.schema.json --data worklife-agent/store/life-baseline.json
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/non-calendar-routines.v1.schema.json --data worklife-agent/config/non-calendar-routines.json
       - name: Show runtime
         run: |
           echo "commit=${GITHUB_SHA}"

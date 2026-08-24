@@ -1,0 +1,66 @@
+name: worklife-weekly-contract-check
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'src/selfReport.js'
+      - 'src/lifeContext.js'
+      - 'src/lifeBaseline.js'
+      - 'src/compute.js'
+      - '.github/workflows/weekly-report.yml'
+      - '.github/workflows/worklife-contract-check.yml'
+  push:
+    paths:
+      - 'AGENTS.md'
+      - 'src/selfReport.js'
+      - 'src/lifeContext.js'
+      - 'src/lifeBaseline.js'
+      - 'src/compute.js'
+      - '.github/workflows/weekly-report.yml'
+      - '.github/workflows/worklife-contract-check.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate worklife token
+        env:
+          WORKLIFE_REPO_TOKEN: ${{ secrets.WORKLIFE_REPO_TOKEN }}
+        run: |
+          if [ -z "${WORKLIFE_REPO_TOKEN}" ]; then
+            echo "::error title=Missing secret::WORKLIFE_REPO_TOKEN is required for contract validation."
+            exit 1
+          fi
+      - name: Checkout worklife contracts and inputs
+        uses: actions/checkout@v7
+        with:
+          repository: yenkwon/yai-worklife-agent
+          path: worklife-agent
+          token: ${{ secrets.WORKLIFE_REPO_TOKEN }}
+          sparse-checkout: |
+            store/self-reports.json
+            store/now-context.json
+            store/life-baseline.json
+            config/non-calendar-routines.json
+            contracts/yai-personal-suite.v1.json
+            contracts/self-reports.v1.schema.json
+            contracts/now-context.v1.schema.json
+            contracts/life-baseline.v1.schema.json
+            contracts/non-calendar-routines.v1.schema.json
+            scripts/validate-json-schema.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate worklife input contracts
+        run: |
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/self-reports.v1.schema.json --data worklife-agent/store/self-reports.json
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/now-context.v1.schema.json --data worklife-agent/store/now-context.json
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/life-baseline.v1.schema.json --data worklife-agent/store/life-baseline.json
+          node worklife-agent/scripts/validate-json-schema.mjs --schema worklife-agent/contracts/non-calendar-routines.v1.schema.json --data worklife-agent/config/non-calendar-routines.json
