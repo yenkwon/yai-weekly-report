@@ -581,5 +581,59 @@
       "남빈 목사 - 목요예배"
     ],
     "integratedInsight": "같은 무게, 다른 질감"
+  },
+  {
+    "week": "2026-W38",
+    "peakCommitted": 14.8,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 8.8,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 46.1,
+      "commute": 8.8,
+      "ministry": 12.5,
+      "worship": 9.8,
+      "career": 0,
+      "growth": 0,
+      "social": 0,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 44.1
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 86,
+    "selfPct": 14,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 1,
+    "loadStdev": 1.6,
+    "avgScore": null,
+    "lifeContextCount": 1,
+    "lifeContextDays": 1,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 1,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 0,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "뉴라이프 오픈워십",
+      "수연생일😘😘"
+    ],
+    "integratedInsight": "긴 하루 끝에 남긴 것"
   }
 ]
