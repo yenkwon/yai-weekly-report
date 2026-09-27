@@ -635,5 +635,59 @@
       "수연생일😘😘"
     ],
     "integratedInsight": "긴 하루 끝에 남긴 것"
+  },
+  {
+    "week": "2026-W39",
+    "peakCommitted": 14.8,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 8.8,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 46.4,
+      "commute": 8.8,
+      "ministry": 10.5,
+      "worship": 2.5,
+      "career": 0,
+      "growth": 0,
+      "social": 2,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 51.1
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 82,
+    "selfPct": 18,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 0,
+    "loadStdev": 3.7,
+    "avgScore": null,
+    "lifeContextCount": 0,
+    "lifeContextDays": 0,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 0,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 0,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "김교상 선교사 - 목요예배",
+      "kt 회식"
+    ],
+    "integratedInsight": "여백이 생겼을 때 무엇이 채워졌나"
   }
 ]
