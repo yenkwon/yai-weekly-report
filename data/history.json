@@ -689,5 +689,59 @@
       "kt 회식"
     ],
     "integratedInsight": "여백이 생겼을 때 무엇이 채워졌나"
+  },
+  {
+    "week": "2026-W40",
+    "peakCommitted": 16.8,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 9.2,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 45.8,
+      "commute": 9.2,
+      "ministry": 12,
+      "worship": 9.3,
+      "career": 0,
+      "growth": 0,
+      "social": 5,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 40
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 87,
+    "selfPct": 13,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 1,
+    "loadStdev": 4.6,
+    "avgScore": 5,
+    "lifeContextCount": 0,
+    "lifeContextDays": 0,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 0,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 0,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "🟢목회지원 회의",
+      "마므레워십 바베큐 파티"
+    ],
+    "integratedInsight": "가장 꽉 찬 주에 가장 선명한 기억이 생겼다"
   }
 ]
