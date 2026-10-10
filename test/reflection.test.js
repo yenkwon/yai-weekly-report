@@ -44,3 +44,44 @@ test('life-context text is a source too, and tiny sources are ignored', () => {
   assert.equal(overlapsSource('목요일까지 양평에 머물면서 재택으로 일하기로 했다는 계획대로 흘러갔다.', sources), true);
   assert.equal(overlapsSource('피곤', sources), false);
 });
+
+import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
+import { analyze } from '../src/weeklyAnalysis.js';
+
+const cfg = loadConfig('./config');
+const start = '2026-06-08';
+// peakCommitted is deliberately far below any real week so at least one change
+// is always significant.
+const PRIOR_ROW = { week: '2026-W23', peakCommitted: 3, restDays: 2, sleepAvg: 6, selfPct: 20,
+  lateNightCount: 0, loadStdev: 1, avgScore: 3, sleepKnown: false,
+  buckets: { ministry: 5, worship: 2, work: 40, life: 30, commute: 5 } };
+
+test('changesAll lists every measured item while changes stays at three', () => {
+  const metrics = withTrends(buildWeek([], cfg, null, start), []);
+  const reports = [{ date: '2026-06-08', score: 5, note: 'a' }, { date: '2026-06-09', score: 4, note: 'b' }];
+  const result = analyze(metrics, [PRIOR_ROW], reports, [], cfg, cfg.catmap, { sleepKnown: false });
+  assert.equal(result.changes.length, 3);
+  assert.deepEqual(result.changesAll.map((c) => c.key).sort(),
+    ['commute', 'felt', 'late', 'life', 'ministry', 'peak', 'rest', 'self', 'sleep', 'spread', 'work']);
+  assert.equal(result.changesAll.find((c) => c.key === 'sleep').significant, false);
+  assert.equal(result.changesAll.find((c) => c.key === 'sleep').confidence, 'estimate');
+  const scores = result.changesAll.map((c) => c.score);
+  assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
+  for (const change of result.changesAll) assert.ok(change.title && change.detail, change.key);
+});
+
+test('changesAll leaves out felt when nothing was self-reported', () => {
+  const metrics = withTrends(buildWeek([], cfg, null, start), []);
+  const result = analyze(metrics, [PRIOR_ROW], [], [], cfg, cfg.catmap, { sleepKnown: false });
+  assert.equal(result.changesAll.some((c) => c.key === 'felt'), false);
+});
+
+test('changesAll has no deltas and nothing significant without history', () => {
+  const metrics = withTrends(buildWeek([], cfg, null, start), []);
+  const result = analyze(metrics, [], [], [], cfg, cfg.catmap, { sleepKnown: false });
+  assert.ok(result.changesAll.length >= 10);
+  for (const change of result.changesAll) {
+    assert.equal(change.weekDelta, null, change.key);
+    assert.equal(change.significant, false, change.key);
+  }
+});

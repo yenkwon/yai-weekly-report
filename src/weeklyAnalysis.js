@@ -51,7 +51,11 @@ function perceivedVsActual(m, reports) {
     title:`체감 ${avgScore ?? '–'}점 · ${reports.length}일 기록`, detail:gap?.text || '기록된 날에는 체감과 일정 부하가 대체로 같은 방향이었습니다.' };
 }
 
-function changesFor(m, history, selfPct) {
+const BASE_CHANGE_KEYS = new Set(['ministry', 'peak', 'late', 'self', 'sleep']);
+
+// Every comparable measure, most-changed first. The first five are the long-
+// standing set that `changes` and the experiment picker are calibrated on.
+function changesFor(m, history, { selfPct, loadStdev, avgScore }) {
   const previous = history.at(-1) || null;
   const baselineRows = history.slice(-4);
   const specs = [
@@ -60,8 +64,14 @@ function changesFor(m, history, selfPct) {
     { key:'late', label:'밤 10시 이후 일정', now:m._lateNightCount||0, unit:'건', threshold:1, read:(r)=>r.lateNightCount||0 },
     { key:'self', label:'나를 위한 시간 비중', now:selfPct, unit:'%p', threshold:4, read:(r)=>r.selfPct },
     { key:'sleep', label:'수면 평균', now:m.sleepAvg, unit:'h', threshold:.25, read:(r)=>r.sleepAvg, estimated:!m.sleepKnown },
+    { key:'work', label:'본업', now:r1(m.buckets.work), unit:'h', threshold:4, read:(r)=>r.buckets?.work },
+    { key:'life', label:'생활·여가', now:r1(m.buckets.life), unit:'h', threshold:4, read:(r)=>r.buckets?.life },
+    { key:'commute', label:'이동', now:r1(m.buckets.commute), unit:'h', threshold:2, read:(r)=>r.buckets?.commute },
+    { key:'rest', label:'완전한 휴일', now:m.restDays, unit:'일', threshold:1, read:(r)=>r.restDays },
+    { key:'spread', label:'요일 편차', now:loadStdev, unit:'h', threshold:1, read:(r)=>r.loadStdev },
+    { key:'felt', label:'체감 평균', now:avgScore, unit:'점', threshold:.5, read:(r)=>r.avgScore },
   ];
-  return specs.map((spec) => {
+  return specs.filter((spec) => Number.isFinite(spec.now)).map((spec) => {
     const vals = baselineRows.map(spec.read).filter(Number.isFinite);
     const baseline = vals.length ? r1(mean(vals)) : null;
     const prevValue = previous ? spec.read(previous) : null;
@@ -70,7 +80,7 @@ function changesFor(m, history, selfPct) {
     const magnitude = Math.max(Math.abs(weekDelta||0), Math.abs(baselineDelta||0));
     return { key:spec.key, label:spec.label, value:spec.now, unit:spec.unit, weekDelta, baseline, baselineDelta,
       significant:magnitude >= spec.threshold && !spec.estimated, confidence:spec.estimated?'estimate':'measured', score:magnitude/spec.threshold };
-  }).sort((a,b)=>b.score-a.score).slice(0,3).map((change) => ({ ...change,
+  }).sort((a,b)=>b.score-a.score).map((change) => ({ ...change,
     tone:change.significant ? ((change.weekDelta ?? change.baselineDelta ?? 0) > 0 ? 'up':'down') : 'flat',
     title:`${change.label} ${change.value}${change.unit}`,
     detail:`${change.weekDelta==null?'지난주 비교 없음':`지난주보다 ${signed(change.weekDelta)}${change.unit}`} · ${change.baseline==null?'4주 기준선 축적 중':`최근 4주 평균 ${change.baseline}${change.unit} 대비 ${signed(change.baselineDelta)}${change.unit}`}${change.confidence==='estimate'?' · 수면은 추정치':''}` }));
@@ -204,13 +214,17 @@ export function analyze(m, history, reports, nextEvents, cfg, catmap, options={}
   lifeContext.recentCount=recentLifeContext.count;
   lifeContext.recentDays=recentLifeContext.days;
   lifeContext.recentTopThemes=recentLifeContext.topThemes;
-  const baseChanges=changesFor(m,history,split.selfPct);
-  const changes=(lifeContext.present || history.some((row)=>Number.isFinite(row.lifeContextCount)))
-    ? [...baseChanges,lifeContextChange(lifeContext,history)].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,3)
+  const measured=changesFor(m,history,{selfPct:split.selfPct,loadStdev:rhythm.variance,avgScore:perceived.avgScore});
+  const baseChanges=measured.filter((change)=>BASE_CHANGE_KEYS.has(change.key)).slice(0,3);
+  const lifeChange=(lifeContext.present || history.some((row)=>Number.isFinite(row.lifeContextCount)))
+    ? lifeContextChange(lifeContext,history) : null;
+  const changes=lifeChange
+    ? [...baseChanges,lifeChange].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,3)
     : baseChanges;
+  const changesAll=[...measured,...(lifeChange?[lifeChange]:[])].sort((a,b)=>(b.score||0)-(a.score||0));
   const notableEvents=notableFor(m,history); const nextWeek=preview(nextEvents,catmap);
   const experimentCandidate=chooseExperiment(changes,notableEvents,nextWeek,split,lifeContext);
-  return { changes, notableEvents, discovery:{title:changes[0]?.title||'비교 기준을 쌓는 주',detail:changes[0]?.detail||'다음 주부터 비교합니다.'},
+  return { changes, changesAll, notableEvents, discovery:{title:changes[0]?.title||'비교 기준을 쌓는 주',detail:changes[0]?.detail||'다음 주부터 비교합니다.'},
     lenses:[split,recovery,rhythm,perceived], lifeContext, preview:nextWeek, recommendations:[experimentCandidate], experimentCandidate,
     subjective:{present:perceived.present,avgScore:perceived.avgScore,count:perceived.count,gap:perceived.gap,detail:perceived.detail},
     historyRow:{othersPct:split.othersPct,selfPct:split.selfPct,recoveryWeekly:recovery.weekly,recoveryBalance:recovery.balance,sleepKnown:m.sleepKnown,
