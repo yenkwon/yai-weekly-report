@@ -271,3 +271,48 @@ test('synthesizeWeekly without an API key returns the computed reflection for an
     if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved;
   }
 });
+
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { publicReport, appendHistory, historyPatch } from '../src/renderReportV2.js';
+import { trendSlice } from '../src/publicPayload.js';
+
+test('history keeps theme names only, never the written sentences', () => {
+  const reports = [{ date: '2026-06-10', score: 3, note: '수요일 기록' }, { date: '2026-06-11', score: 4, note: '목요일 기록' }];
+  const { metrics, analysis } = weekOf(WEEK_EVENTS, reports);
+  const synthesis = finalizeReflection({ draft: draftOf(), source: 'llm', metrics, analysis, selfReports: reports, history: [] });
+  const patch = historyPatch(analysis, synthesis);
+  assert.deepEqual(patch.themes, ['예배와 음악 사이']);
+  assert.equal(patch.othersPct, analysis.historyRow.othersPct);
+  for (const key of ['scenes', 'dayLines', 'openingNote', 'integratedInsight']) assert.equal(patch[key], undefined, key);
+
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'reflection-')), 'history.json');
+  const history = appendHistory(file, '2026-W24', metrics, patch);
+  const row = history.find((item) => item.week === '2026-W24');
+  assert.deepEqual(row.themes, ['예배와 음악 사이']);
+  assert.equal(JSON.stringify(row).includes('잘 치는 것과 예배하는 것'), false);
+  assert.equal(trendSlice(history)[0].themes, undefined);
+});
+
+test('public payload carries the reflection and still drops every private original', () => {
+  const reports = [{ date: '2026-06-10', score: 3, note: '민감한 수요일 원문 기록입니다' }, { date: '2026-06-11', score: 4, note: '민감한 목요일 원문 기록입니다' }];
+  const { metrics, analysis } = weekOf(WEEK_EVENTS, reports);
+  const synthesis = finalizeReflection({ draft: draftOf(), source: 'llm', metrics, analysis, selfReports: reports, history: [] });
+  const safe = publicReport({
+    week: '2026-W24', selfReports: reports, lifeContexts: [{ text: '비공개 생활 업데이트 원문' }],
+    ...metrics, ...analysis,
+    openingNote: synthesis.openingNote, scenes: synthesis.scenes, dayLines: synthesis.dayLines,
+    themes: synthesis.themes, recommendations: [synthesis.experiment],
+  });
+  assert.equal(safe.selfReports, undefined);
+  assert.equal(safe.lifeContexts, undefined);
+  assert.equal(safe.eventHistory, undefined);
+  assert.equal(safe.scenes.length, 1);
+  assert.equal(safe.dayLines.thu.source, 'report');
+  assert.equal(safe.themes[0].recentWeeks, 1);
+  assert.ok(safe.changesAll.length >= 10);
+  const serialized = JSON.stringify(safe);
+  assert.equal(serialized.includes('민감한 수요일 원문'), false);
+  assert.equal(serialized.includes('비공개 생활 업데이트 원문'), false);
+});

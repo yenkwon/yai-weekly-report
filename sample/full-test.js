@@ -24,13 +24,19 @@ const m = withTrends(buildWeek(events, cfg, null, mondayISO), history);
 const ins = analyze(m, history, selfReport, nextEvents, cfg, cfg.catmap, { sleepKnown:false });
 const synthesis = await synthesizeWeekly({ metrics:m, analysis:ins, selfReports:selfReport, history });
 const note = synthesis.openingNote;
-const report = { week:'2026-W25', sleepKnown:false, openingNote:note, integratedInsight:synthesis.integratedInsight,
+const report = { week:'2026-W25', sleepKnown:false, openingNote:note,
+  scenes:synthesis.scenes, dayLines:synthesis.dayLines, themes:synthesis.themes,
   synthesisSource:synthesis.source, selfReports:selfReport, ...m, ...ins, recommendations:[synthesis.experiment] };
 
 console.log('=== OPENING NOTE ('+note.source+') ===\n'+note.text);
-console.log('\n=== DISCOVERY ===\n'+ins.discovery.title+'\n  '+ins.discovery.detail);
-console.log('\n=== LENSES ===');
-ins.lenses.forEach(l=>console.log(`  [${l.tone}] ${l.title}\n      ${l.detail}`));
+console.log('\n=== SCENES ===');
+synthesis.scenes.forEach((s)=>console.log(`  [${s.day}] ${s.title}\n      ${s.detail}`));
+console.log('\n=== DAY LINES ===');
+Object.entries(synthesis.dayLines).forEach(([day,line])=>console.log(`  ${day} (${line.source}, ${line.score??'-'}) ${line.text}`));
+console.log('\n=== THEMES ===');
+synthesis.themes.forEach((t)=>console.log(`  ${t.name} (${t.recentWeeks}) ${t.detail}`));
+console.log('\n=== CHANGES ===');
+ins.changesAll.forEach((c)=>console.log(`  ${c.significant?'*':' '} ${c.title} — ${c.detail}`));
 console.log('\n=== PREVIEW ===\n  '+ins.preview.title+': '+ins.preview.detail);
 console.log('\n=== RECS ===');
 ins.recommendations.forEach(r=>console.log(`  (${r.p}) ${r.title}`));

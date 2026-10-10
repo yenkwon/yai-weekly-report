@@ -77,6 +77,13 @@ function serializeForScript(value) {
   }[char]));
 }
 
+// What a week adds to the public history file. Theme names are kept so next
+// week can tell a continuing theme from a new one; the sentences written about
+// them live only in that week's page.
+export function historyPatch(analysis, synthesis) {
+  return { ...analysis.historyRow, themes:(synthesis.themes || []).map((theme) => theme.name) };
+}
+
 export function appendHistory(historyPath, week, metrics, patch = {}) {
   const history = fs.existsSync(historyPath) ? JSON.parse(fs.readFileSync(historyPath, 'utf8')) : [];
   const row = {

@@ -5,7 +5,7 @@ import { lastWeekRange, fetchWeek } from './fetchCalendar.js';
 import { analyze } from './weeklyAnalysis.js';
 import { synthesizeWeekly } from './weeklySynthesis.js';
 import { getAdapter } from './selfReport.js';
-import { summaryText, renderHTML, appendHistory, appendPrivateEventHistory } from './renderReportV2.js';
+import { summaryText, renderHTML, appendHistory, appendPrivateEventHistory, historyPatch } from './renderReportV2.js';
 import { sendReport, sendText, readSleepReply } from './telegram.js';
 import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
 import { loadLifeContext } from './lifeContext.js';
@@ -67,7 +67,9 @@ async function build(sleepOverride=null, sleepKnown=false) {
     sleepSource: sleepOverrideDays.length ? (sleepKnown ? 'reply' : 'correction') : 'estimate',
     corrections,
     openingNote: synthesis.openingNote,
-    integratedInsight: synthesis.integratedInsight,
+    scenes: synthesis.scenes,
+    dayLines: synthesis.dayLines,
+    themes: synthesis.themes,
     synthesisSource: synthesis.source,
     selfReports: selfReport,
     lifeContexts: lifeContext.week,
@@ -79,10 +81,7 @@ async function build(sleepOverride=null, sleepKnown=false) {
   fs.mkdirSync(`./${PUBLISH_DIR}/weeks`, { recursive: true });
   // Append first so the dashboard's 8-week trend includes this week. The row is
   // replaced by week key, so a reconcile rebuild stays idempotent.
-  const updatedHistory = appendHistory('./data/history.json', week, m, {
-    ...ins.historyRow,
-    integratedInsight: synthesis.integratedInsight.title,
-  });
+  const updatedHistory = appendHistory('./data/history.json', week, m, historyPatch(ins, synthesis));
   const html = renderHTML(report, { history: updatedHistory });
   fs.writeFileSync(`./${PUBLISH_DIR}/index.html`, html);
   fs.writeFileSync(`./${PUBLISH_DIR}/weeks/${week}.html`, html);
