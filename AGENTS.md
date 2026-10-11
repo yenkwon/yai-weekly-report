@@ -22,11 +22,12 @@ Boundaries:
 - Self-reports, now-context, life-baseline, and non-calendar routines are owned by `yai-worklife-agent` and are read-only here.
 - `private_weekly_event_history` is the only registered cross-repository write. It is logically owned here but physically stored in the private worklife repository.
 - Never place self-report originals, raw now-context, or full event history in `data/history.json`, `docs/`, or other public payloads.
+- Rewritten narrative derived from those sources (scenes, day lines, themes) is allowed in public output; verbatim originals are not. `src/reflectionGuard.js` enforces the line and `test/reflection.test.js` locks it. Do not loosen either without a spec.
 - The newest authoritative personal data must be read through the registered paths; derived weekly interpretation must not overwrite source facts.
 - Do not collect Telegram daily input or recreate the worklife daily agent.
 
 Verification:
 
 - Validate every checked-out worklife input against the central v1 schemas.
-- Run `npm.cmd test` for code changes.
+- Run `node --test test/weekly-v2.test.js test/reflection.test.js` (same as `npm.cmd test`) for code changes.
 - Run the privacy tests whenever public payload fields or rendering change.
