@@ -743,5 +743,63 @@
       "마므레워십 바베큐 파티"
     ],
     "integratedInsight": "가장 꽉 찬 주에 가장 선명한 기억이 생겼다"
+  },
+  {
+    "week": "2026-W41",
+    "peakCommitted": 16,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 5.9,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 38.2,
+      "commute": 5.9,
+      "ministry": 26.8,
+      "worship": 5.8,
+      "career": 0,
+      "growth": 0,
+      "social": 0,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 44.7
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 92,
+    "selfPct": 8,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 1,
+    "loadStdev": 3.7,
+    "avgScore": 4.2,
+    "lifeContextCount": 1,
+    "lifeContextDays": 1,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 1,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 1,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "g2a",
+      "문성은 목사 - 목요예배"
+    ],
+    "themes": [
+      "내 기준으로 충분히",
+      "피로 누적과 관계 마찰",
+      "쉬는 것도 계획"
+    ]
   }
 ]

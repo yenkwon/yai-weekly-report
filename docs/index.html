@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="robots" content="noindex,nofollow">
 <title>주간 리포트</title>
 <style>
 :root{
@@ -40,6 +42,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Appl
 .eyebrow{margin:0 0 14px;color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.2em}
 .opening{margin:0;max-width:760px;font-size:clamp(22px,3.3vw,32px);font-weight:760;line-height:1.45;letter-spacing:-.025em}
 .lede{margin:16px 0 0;color:var(--muted);font-size:15px}
+.records{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.record{padding:18px 20px;border-left:4px solid var(--gold)}
+.record .rmeta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px;font-weight:700}
+.record h3{margin:8px 0 5px;font-size:15px}
+.record p{margin:0;color:var(--muted);font-size:14px}
 .confidence{display:inline-block;margin-left:6px;padding:2px 7px;border:1px solid var(--line);border-radius:999px;font-size:10px;vertical-align:2px;color:var(--muted)}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:30px}
 .stat,.card{background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px}
@@ -121,8 +128,7 @@ table.data tbody td{font-variant-numeric:tabular-nums}
 .insight h3{margin:0 0 9px;font-size:20px}
 .insight p{margin:0;color:var(--muted);font-size:14.5px}
 
-/* 05 lenses */
-.lenses{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+
 .lens{padding:21px 23px;border-left:4px solid var(--line)}
 .lens h3{margin:0 0 6px;font-size:16px}
 .lens p{margin:0;color:var(--muted);font-size:13.5px}
@@ -174,27 +180,84 @@ table.data tbody td{font-variant-numeric:tabular-nums}
 .experiment{border-left:5px solid var(--gold)}
 .preview h3,.experiment h3{margin:0 0 8px;font-size:17px}
 .preview p,.experiment p{margin:0;color:var(--muted);font-size:14px}
-.nextstats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.nextstats .stat strong{font-size:21px}
-.pvchip{display:inline-block;margin:9px 6px 0 0;padding:4px 10px;border-radius:999px;font-size:11.5px;background:#f0ebe0;color:#725d35}
-.pvchip.warn{background:#fbeae6;color:#8c3f30}
-.altexp{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
-.altexp b{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px}
-.altexp p{margin:0;font-size:13px;color:var(--muted)}
-.pvbars{display:flex;gap:7px;align-items:stretch;height:80px;margin-top:18px}
-.pvbar{flex:1;display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--muted);text-align:center}
 .pvtrack{flex:1;display:flex;align-items:flex-end}
-.pvbar i{display:flex;flex-direction:column;width:100%;border-radius:4px 4px 0 0;overflow:hidden;min-height:3px}
-.pvbar i u{display:block;width:100%;background:var(--c-other);box-shadow:inset 0 0 0 1px var(--ring)}
-.pvbar i b{display:block;width:100%;background:var(--c-ministry);box-shadow:inset 0 0 0 1px var(--ring)}
-.pvbar.heavy{color:var(--ink);font-weight:700}
-.pvbar.heavy i{outline:2px solid var(--marker);outline-offset:1px}
 
+/* scenes */
+.scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.scene{padding:22px 24px;border-left:5px solid var(--gold)}
+.scene .sday{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.04em}
+.scene h3{margin:4px 0 8px;font-size:18px;letter-spacing:-.01em}
+.scene p{margin:0;color:var(--muted);font-size:14.5px}
+
+/* a line per day */
+.dayrows{display:grid;gap:0}
+.dayrow{display:grid;grid-template-columns:64px 1fr 52px;gap:16px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+.dayrow:first-child{border-top:0;padding-top:4px}
+.dname b{display:block;font-size:15px}
+.dname span{font-size:11.5px;color:var(--muted)}
+.dayrow.peak .dname b{color:var(--emph)}
+.hbar{display:flex;height:14px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+.hseg{display:block;height:100%;flex:none}
+.hseg+.hseg{border-left:1px solid var(--paper)}
+.dline{margin:9px 0 0;font-size:14.5px}
+.norec{margin-left:8px;font-size:11px;color:var(--faint)}
+.score{text-align:right;font-size:19px;font-weight:800;line-height:1.2}
+.score small{font-size:11px;font-weight:600;color:var(--muted)}
+
+/* themes */
+.themes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.theme{padding:20px 22px}
+.theme h3{margin:0 0 6px;font-size:16px}
+.theme p{margin:0;color:var(--muted);font-size:14px}
+.theme .badge{display:inline-block;margin-bottom:9px;padding:2px 9px;border-radius:999px;background:#f0ebe0;color:#725d35;font-size:11px;font-weight:700}
+
+/* what changed */
+.streak{margin:14px 0 0;padding:12px 16px;border-radius:12px;border:1px solid #ead7a8;border-left:5px solid var(--gold);background:#fff8e6;font-size:13.5px;font-weight:700}
+.allnums{margin-top:18px}
+.allnums summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:700}
+.allnums table.data{margin-top:12px}
+.corr{margin-top:14px;color:var(--muted);font-size:12.5px}
+.corr ul{margin:4px 0 0;padding-left:17px}
+/* scenes */
+.scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.scene{padding:22px 24px;border-left:5px solid var(--gold)}
+.scene .sday{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.04em}
+.scene h3{margin:4px 0 8px;font-size:18px;letter-spacing:-.01em}
+.scene p{margin:0;color:var(--muted);font-size:14.5px}
+
+/* a line per day */
+.dayrows{display:grid;gap:0}
+.dayrow{display:grid;grid-template-columns:64px 1fr 52px;gap:16px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+.dayrow:first-child{border-top:0;padding-top:4px}
+.dname b{display:block;font-size:15px}
+.dname span{font-size:11.5px;color:var(--muted)}
+.dayrow.peak .dname b{color:var(--emph)}
+.hbar{display:flex;height:14px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+.hseg{display:block;height:100%;flex:none}
+.hseg+.hseg{border-left:1px solid var(--paper)}
+.dline{margin:9px 0 0;font-size:14.5px}
+.norec{margin-left:8px;font-size:11px;color:var(--faint)}
+.score{text-align:right;font-size:19px;font-weight:800;line-height:1.2}
+.score small{font-size:11px;font-weight:600;color:var(--muted)}
+
+/* themes */
+.themes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.theme{padding:20px 22px}
+.theme h3{margin:0 0 6px;font-size:16px}
+.theme p{margin:0;color:var(--muted);font-size:14px}
+.theme .badge{display:inline-block;margin-bottom:9px;padding:2px 9px;border-radius:999px;background:#f0ebe0;color:#725d35;font-size:11px;font-weight:700}
+
+/* what changed */
+.streak{margin:14px 0 0;padding:12px 16px;border-radius:12px;border:1px solid #ead7a8;border-left:5px solid var(--gold);background:#fff8e6;font-size:13.5px;font-weight:700}
+.allnums{margin-top:18px}
+.allnums summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:700}
+.allnums table.data{margin-top:12px}
+.corr{margin-top:14px;color:var(--muted);font-size:12.5px}
+.corr ul{margin:4px 0 0;padding-left:17px}
 .foot{margin-top:48px;text-align:center;color:var(--faint);font-size:12px;line-height:1.85}
 
 @media(max-width:860px){
  .stats{grid-template-columns:repeat(2,1fr)}
- .changes,.lenses,.alloc,.next,.trends{grid-template-columns:1fr}
  .axis,.stack{height:260px}
  .grid{gap:4px}.dsub{display:none}
  .wrap{padding-top:34px}
@@ -205,68 +268,59 @@ table.data tbody td{font-variant-numeric:tabular-nums}
 
 <p class="eyebrow" id="eyebrow"></p>
 <h1 class="opening" id="opening"></h1>
-<p class="lede" id="lede"></p>
-<div class="stats" id="stats"></div>
-<div id="banners"></div>
+
+<section id="recordSection" hidden>
+ <div class="head"><h2>내가 남긴 기록</h2></div>
+ <p class="sub">직접 적은 원문 대신, 그날의 자기보고를 짧게 정리했습니다.</p>
+ <div class="records" id="records"></div>
+</section>
+
+<section id="sceneSection">
+ <div class="head"><h2>이번 주의 장면</h2></div>
+ <p class="sub">이 주를 다시 떠올릴 때 먼저 생각날 순간들입니다.</p>
+ <div class="scenes" id="scenes"></div>
+</section>
 
 <section>
- <div class="head"><span class="idx">01</span><h2>이번 주의 모양</h2>
+ <div class="head"><h2>요일별 한 줄</h2>
   <button class="ghost" id="tableToggle" type="button" aria-expanded="false" aria-controls="timelineTable">표로 보기</button></div>
- <p class="sub">각 칸은 자정에서 자정까지 하루입니다. 30분 단위로 정리했고, 막대에 올리면 무슨 시간이었는지 보입니다.</p>
+ <p class="sub">막대는 자정에서 자정까지의 하루입니다(30분 단위). 숫자는 그날 남긴 체감 점수이고, 기록이 없는 날은 일정으로만 적었습니다.</p>
  <div class="card" style="padding:24px 26px">
   <div class="legend" id="legend"></div>
-  <div class="grid" id="grid"></div>
+  <div class="dayrows" id="dayrows"></div>
   <table class="data" id="timelineTable" hidden><caption>요일별 시간 배분 (시간, 30분 단위 반올림)</caption><thead id="tHead"></thead><tbody id="tBody"></tbody></table>
  </div>
 </section>
 
+<section id="themeSection">
+ <div class="head"><h2>내가 쓴 말의 주제</h2></div>
+ <p class="sub">이번 주 기록에서 여러 번 돌아온 생각입니다.</p>
+ <div class="themes" id="themes"></div>
+</section>
+
 <section>
- <div class="head"><span class="idx">02</span><h2>이번 주 달라진 3가지</h2></div>
- <p class="sub">막대는 이번 주 값, 금색 눈금은 최근 4주 평균입니다. 눈금보다 막대가 길면 평소보다 많았던 주입니다.</p>
+ <div class="head"><h2>지난주와 달라진 것</h2></div>
+ <p class="sub">의미 있게 변한 수치만 올렸습니다. 막대는 이번 주 값, 금색 눈금은 최근 4주 평균입니다.</p>
  <div class="changes" id="changes"></div>
-</section>
-
-<section>
- <div class="head"><span class="idx">03</span><h2>새롭거나 특별했던 일정</h2></div>
- <p class="sub" id="eventNote"></p>
- <div class="events" id="events"></div>
-</section>
-
-<section>
- <div class="head"><span class="idx">04</span><h2>통합 인사이트</h2></div>
- <p class="sub">숫자 하나가 아니라 변화, 일정, 체감을 연결해 읽습니다.</p>
- <div class="card insight"><h3 id="insightTitle"></h3><p id="insightDetail"></p></div>
-</section>
-
-<section>
- <div class="head"><span class="idx">05</span><h2 id="lensHeading">네 가지 렌즈</h2></div>
- <p class="sub">총량만이 아니라 방향, 회복, 리듬, 체감까지 나눠서 봅니다.</p>
- <div class="lenses" id="lenses"></div>
+ <p class="streak" id="streak" hidden></p>
+ <details class="allnums">
+  <summary>전체 수치 보기</summary>
+  <table class="data"><thead><tr><th scope="col">항목</th><th scope="col">이번 주</th><th scope="col">지난주 대비</th><th scope="col">최근 4주 평균</th></tr></thead><tbody id="numBody"></tbody></table>
+ </details>
+ <div id="corrNotes"></div>
 </section>
 
 <section id="trendSection">
- <div class="head"><span class="idx">06</span><h2>최근 8주 흐름</h2></div>
+ <div class="head"><h2>최근 8주 흐름</h2></div>
  <p class="sub">단위가 다른 지표라 각각 따로 그립니다. 금색 점이 이번 주입니다.</p>
  <div class="trends" id="trends"></div>
 </section>
 
 <section>
- <div class="head"><span class="idx">07</span><h2>168시간 분배</h2></div>
- <p class="sub">결론이 아니라 해석의 근거입니다. 자정을 넘는 일정은 날짜별 실제 겹친 시간만 계산합니다.</p>
- <div class="alloc">
-  <div class="card bars" id="bars"></div>
-  <div class="card days" id="days"></div>
- </div>
-</section>
-
-<section>
- <div class="head"><span class="idx">08</span><h2>다음 주</h2></div>
- <p class="sub">유일하게 앞을 보는 칸입니다. 캘린더에 등록된 일정만 세므로, 루틴으로 채워질 시간은 아직 빠져 있습니다.</p>
- <div class="nextstats" id="nextStats"></div>
+ <div class="head"><h2>다음 주</h2></div>
  <div class="next">
-  <div class="card preview"><h3 id="previewTitle"></h3><p id="previewDetail"></p>
-   <div class="pvbars" id="pvbars"></div><div id="pvlegend"></div><div id="pvchips"></div></div>
-  <div class="card experiment"><h3 id="experimentTitle"></h3><p id="experimentDetail"></p><div id="experimentAlt"></div></div>
+  <div class="card preview"><h3 id="previewTitle"></h3><p id="previewDetail"></p></div>
+  <div class="card experiment"><h3 id="experimentTitle"></h3><p id="experimentDetail"></p></div>
  </div>
 </section>
 
@@ -274,8 +328,10 @@ table.data tbody td{font-variant-numeric:tabular-nums}
 </main>
 <div class="tip" id="tip"></div>
 
+
+
 <script>
-const DATA={"week":"2026-W40","weekLabel":"2026-W40 : 09.28 - 10.04","period":{"startLocal":"2026-09-28","endLocalInclusive":"2026-10-04","endLocalExclusive":"2026-10-05"},"sleepKnown":false,"sleepOverrideDays":[],"sleepSource":"estimate","corrections":{"week":"2026-W40","present":false,"notes":[],"sleepOverride":{},"categoryOverrides":[]},"openingNote":{"text":"사역 시간이 평소보다 눈에 띄게 늘었고, 그 사이에 가족과 함께한 시간이 한 주를 다르게 만들었다.","source":"llm"},"integratedInsight":{"title":"가장 꽉 찬 주에 가장 선명한 기억이 생겼다","detail":"이번 주는 사역·예배 시간이 최근 4주 중 가장 많았고, 가장 긴 하루도 평균을 넘었다. 나를 위한 시간 비중은 줄었지만, 자기보고에서 가장 높은 만족 점수가 나온 날은 바로 그 꽉 찬 흐름 한가운데였다. 시간의 양보다 어떤 순간이 끼어 있었는지가 한 주의 무게감을 결정하는 것 같다. 바베큐 파티와 가족 나들이가 연달아 놓인 금·토 구간이 그 역할을 했다.","source":"llm"},"synthesisSource":"llm","committedByDay":{"mon":9.51,"tue":10.84,"wed":10.84,"thu":16,"fri":16.84,"sat":1.67,"sun":10.5},"ministryByDay":{"mon":0.17,"tue":0.42,"wed":0.17,"thu":4.67,"fri":6.17,"sat":0.67,"sun":9},"sleepByDay":{"mon":6.83,"tue":6.83,"wed":6.83,"thu":6,"fri":5.42,"sat":6.33,"sun":8.5},"buckets":{"sleep":46.7,"work":45.8,"commute":9.2,"ministry":12,"worship":9.3,"career":0,"growth":0,"social":5,"family":0,"selfcare":0,"exercise":0,"life":40},"peakDay":"fri","peakCommitted":16.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"drivingHours":9.2,"flags":{"satSleepover":true,"sundaySleep7":true,"exerciseZero":true,"selfcareZero":true,"restZero":true},"_lateNightCount":1,"_latestEnd":"22:00","dateByDay":{"mon":"2026-09-28","tue":"2026-09-29","wed":"2026-09-30","thu":"2026-10-01","fri":"2026-10-02","sat":"2026-10-03","sun":"2026-10-04"},"nonCalendarRoutines":{"totalMinutes":60,"items":[{"id":"pastoral-briefing","title":"기독교/목회 브리핑","category":"ministry","occurrences":6,"minutes":60,"days":["2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-03"],"activeFrom":"2026-08-05"},{"id":"thursday-worship-sheet-music","title":"목요예배 악보 만들기","category":"ministry","occurrences":1,"minutes":0,"days":["2026-10-01"],"activeFrom":"2026-08-05"}]},"routineMeta":{"quarter":null,"quarters":[3,4],"officeDays":["tue","wed","thu","fri"],"sunday":{"wake":"08:30","prepStart":"09:00","start":"08:00","end":"17:00","worship":["11:00","14:00"]},"yjds":{"name":"양평예수제자학교","leader":"안길함 목사님","role":"예배 반주","prepLeadHours":1}},"delta":{"peakCommitted":2,"ministry":8.3,"sleepAvg":0},"zeroRestStreak":16,"changes":[{"key":"ministry","label":"사역·예배","value":21.3,"unit":"h","weekDelta":8.3,"baseline":17.9,"baselineDelta":3.4,"significant":true,"confidence":"measured","score":4.15,"tone":"up","title":"사역·예배 21.3h","detail":"지난주보다 +8.3h · 최근 4주 평균 17.9h 대비 +3.4h"},{"key":"peak","label":"가장 긴 하루","value":16.8,"unit":"h","weekDelta":2,"baseline":14.8,"baselineDelta":2,"significant":true,"confidence":"measured","score":2,"tone":"up","title":"가장 긴 하루 16.8h","detail":"지난주보다 +2h · 최근 4주 평균 14.8h 대비 +2h"},{"key":"self","label":"나를 위한 시간 비중","value":13,"unit":"%p","weekDelta":-5,"baseline":16.3,"baselineDelta":-3.3,"significant":true,"confidence":"measured","score":1.25,"tone":"down","title":"나를 위한 시간 비중 13%p","detail":"지난주보다 -5%p · 최근 4주 평균 16.3%p 대비 -3.3%p"}],"notableEvents":{"comparisonReady":true,"items":[{"title":"🟢목회지원 회의","category":"ministry","start":"2026-10-01T22:00:00+09:00","end":"2026-10-02T00:00:00+09:00","durationHours":2,"allDay":false,"periodEvent":false,"day":"thu","reasons":["밤 10시 이후 시작","평소 1h보다 길었음","평소 토요일에서 이동"]},{"title":"마므레워십 바베큐 파티","category":"worship","start":"2026-10-02T18:00:00+09:00","end":"2026-10-03T00:00:00+09:00","durationHours":6,"allDay":false,"periodEvent":false,"day":"fri","reasons":["최근 4주에 없던 일정","6h 장시간 일정"]},{"title":"가족 여행","category":"social","start":"2026-10-03T08:00:00+09:00","end":"2026-10-03T13:00:00+09:00","durationHours":5,"allDay":false,"periodEvent":false,"day":"sat","reasons":["최근 4주에 없던 일정","5h 장시간 일정"]},{"title":"인화생일🍰","category":"social","start":"2026-09-29","end":"2026-09-30","durationHours":null,"allDay":true,"periodEvent":false,"day":"tue","reasons":["최근 4주에 없던 일정","종일·기간 일정"]}],"note":"최근 4주와 비교해 예외적인 일정만 골랐습니다."},"discovery":{"title":"사역·예배 21.3h","detail":"지난주보다 +8.3h · 최근 4주 평균 17.9h 대비 +3.4h"},"lenses":[{"key":"others_self","tone":"note","othersPct":87,"selfPct":13,"title":"타인 87% · 나 13%","detail":"방향이 분명한 시간 중 타인을 향한 시간은 31h, 나를 위한 시간은 5h입니다."},{"key":"recovery_debt","tone":"note","weekly":null,"balance":null,"confidence":"estimate","title":"회복 판단은 보류","detail":"수면 6.68h는 기본 루틴 추정치입니다. 실제 수면이 확인되기 전에는 회복 부채를 누적하지 않습니다."},{"key":"rhythm","tone":"note","variance":4.6,"lateNight":1,"title":"요일 편차 4.6h · 밤 10시 이후 1건","detail":"가장 긴 날은 금요일 16.8h였습니다."},{"key":"perceived","tone":"note","present":true,"avgScore":5,"count":1,"gap":null,"title":"체감 5점 · 1일 기록","detail":"기록된 날에는 체감과 일정 부하가 대체로 같은 방향이었습니다."}],"lifeContext":{"present":false,"count":0,"days":0,"planCorrections":0,"bodySignals":0,"workSignals":0,"themeCounts":{"body":0,"location":0,"work":0,"relationship":0,"emotion":0},"topThemes":[],"carriedCount":0,"recentCount":1,"recentDays":1,"recentTopThemes":[{"key":"location","label":"위치·이동","count":1}],"detail":"이번 주에 기록된 생활 업데이트가 없습니다."},"preview":{"title":"다음 주 미리보기","detail":"가장 무거운 날은 금요일 사역 7.5h · 일정이 비어 있는 날 1일.","flags":[],"banners":[],"dayHours":{"mon":0.5,"tue":0,"wed":0,"thu":2.5,"fri":7.5,"sat":2,"sun":1.5},"loadByDay":{"mon":1,"tue":0.5,"wed":0,"thu":2.5,"fri":11.5,"sat":2,"sun":1.5},"bucketHours":{"worship":2.5,"ministry":11.5,"life":5},"eventCount":9,"totalHours":19,"heaviestDay":"fri","lightestDay":"wed","openDays":1},"recommendations":[{"p":1,"title":"다음 주 가장 빈 날 하루, 아무 사역도 없는 시간을 미리 이름 붙여두기","detail":"금요일처럼 무거운 날이 예정된 주에, 빈 날을 그냥 두는 것과 의도적으로 이름을 붙여두는 것이 실제 체감에 차이를 만드는지 다음 자기보고에서 확인한다.","source":"llm"}],"experimentCandidate":{"p":1,"title":"마므레워십 바베큐 파티 뒤 20분 비우기","detail":"새 일정이 남긴 체력 비용을 다음 자기보고에서 확인합니다."},"subjective":{"present":true,"avgScore":5,"count":1,"gap":null,"detail":"기록된 날에는 체감과 일정 부하가 대체로 같은 방향이었습니다."},"timeline":{"mon":[[0,7,"sleep"],[7,8,"life"],[8,17,"work"],[17,24,"life"]],"tue":[[0,7,"sleep"],[7,7.5,"commute"],[7.5,8,"life"],[8,12,"work"],[12,12.5,"ministry"],[12.5,17,"work"],[17,18,"commute"],[18,24,"life"]],"wed":[[0,7,"sleep"],[7,7.5,"commute"],[7.5,8,"life"],[8,17,"work"],[17,18,"commute"],[18,24,"life"]],"thu":[[0,6,"sleep"],[6,7,"life"],[7,7.5,"commute"],[7.5,8,"life"],[8,17,"work"],[17,18.5,"commute"],[18.5,19.5,"life"],[19.5,24,"ministry"]],"fri":[[0,5.5,"sleep"],[5.5,7,"life"],[7,7.5,"commute"],[7.5,8,"life"],[8,17,"work"],[17,18,"commute"],[18,24,"ministry"]],"sat":[[0,6.5,"sleep"],[6.5,7,"life"],[7,8,"commute"],[8,13,"social"],[13,21.5,"life"],[21.5,22,"ministry"],[22,24,"life"]],"sun":[[0,8,"sleep"],[8,17,"ministry"],[17,18.5,"commute"],[18.5,24,"life"]]},"trend":[{"week":"2026-W33","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":75,"selfPct":25,"lateNightCount":0,"loadStdev":3.7,"avgScore":3.9,"sleepKnown":false,"buckets":{"work":45.4,"ministry":11.5,"worship":3,"life":51.1,"sleep":46.7,"commute":8.3}},{"week":"2026-W34","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":84,"selfPct":16,"lateNightCount":2,"loadStdev":3.6,"avgScore":3.7,"sleepKnown":false,"buckets":{"work":46.4,"ministry":10.5,"worship":8,"life":47.6,"sleep":46.7,"commute":8.8}},{"week":"2026-W35","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":85,"selfPct":15,"lateNightCount":1,"loadStdev":3.6,"avgScore":4.1,"sleepKnown":false,"buckets":{"work":46.4,"ministry":14.3,"worship":4.5,"life":48.3,"sleep":46.7,"commute":7.8}},{"week":"2026-W36","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":83,"selfPct":17,"lateNightCount":0,"loadStdev":3.9,"avgScore":null,"sleepKnown":false,"buckets":{"work":46.4,"ministry":14.8,"worship":3,"life":48.3,"sleep":46.7,"commute":8.8}},{"week":"2026-W37","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":84,"selfPct":16,"lateNightCount":0,"loadStdev":2.6,"avgScore":null,"sleepKnown":false,"buckets":{"work":44.4,"ministry":15.5,"worship":2.8,"life":49.8,"sleep":46.7,"commute":8.8}},{"week":"2026-W38","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":86,"selfPct":14,"lateNightCount":1,"loadStdev":1.6,"avgScore":null,"sleepKnown":false,"buckets":{"work":46.1,"ministry":12.5,"worship":9.8,"life":44.1,"sleep":46.7,"commute":8.8}},{"week":"2026-W39","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":82,"selfPct":18,"lateNightCount":0,"loadStdev":3.7,"avgScore":null,"sleepKnown":false,"buckets":{"work":46.4,"ministry":10.5,"worship":2.5,"life":51.1,"sleep":46.7,"commute":8.8}},{"week":"2026-W40","peakCommitted":16.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":87,"selfPct":13,"lateNightCount":1,"loadStdev":4.6,"avgScore":5,"sleepKnown":false,"buckets":{"work":45.8,"ministry":12,"worship":9.3,"life":40,"sleep":46.7,"commute":9.2}}]};
+const DATA={"week":"2026-W41","weekLabel":"2026-W41 : 10.05 - 10.11","period":{"startLocal":"2026-10-05","endLocalInclusive":"2026-10-11","endLocalExclusive":"2026-10-12"},"sleepKnown":false,"sleepOverrideDays":[],"sleepSource":"estimate","corrections":{"week":"2026-W41","present":false,"notes":[],"sleepOverride":{},"categoryOverrides":[]},"openingNote":{"text":"사역 시간이 평소의 두 배 가까이 쌓인 한 주였다. 월·화·수 자기보고가 모두 4점대를 유지했다는 것도 함께 남긴다.","source":"llm"},"scenes":[{"day":"mon","title":"가족 외식 후 독서실","detail":"아빠, 예린이와 이지바이에서 스파게티와 회덮밥으로 점심을 먹었다. 오후에는 실컷 쉬고, 저녁에는 동네 독서실에서 밀린 업무를 마무리했다. 쉬는 것과 하는 것이 하루 안에 나란히 들어간 날이었다."},{"day":"fri","title":"G2A 8시간, 그리고 청모","detail":"오전 10시부터 저녁 6시까지 G2A 일정을 소화했다. 끝나자마자 박성찬 청모가 이어져 자정 가까이까지 계속됐다. 목요예배·목회지원 회의가 있던 전날 밤에서 이어진 흐름이었다."},{"day":"sat","title":"두 결혼식","detail":"조성선 집사님 따님 결혼식과 윤지영 전도사님 결혼식이 같은 날 잡혀 있었다. 전날 밤 자정에 결혼식 기도문 예시를 준비한 것까지 포함하면 토요일은 사실상 전날 밤부터 시작된 셈이었다."}],"dayLines":{"mon":{"text":"가족과 외식으로 낮을 채우고, 저녁에는 독서실에서 예배 이미지 작업과 밀린 일들을 처리하며 뿌듯하게 마무리했다.","source":"report","score":4.5},"tue":{"text":"AI에게 자신을 한마디로 물어보는 실험을 해봤고, 회사 바쁨 앞에서 '내 기준에서 최선을 다하자'는 방향을 스스로 정리했다.","source":"report","score":4.5},"wed":{"text":"KT 주간보고 날이었는데 아침부터 몸 상태가 좋지 않았고, 피로가 누적된 채로 하루를 버텼다.","source":"report","score":3.5},"thu":{"text":"오전 반차로 양평으로 이동한 뒤, 저녁에 문성은 목사 목요예배와 자정까지 이어진 목회지원 회의를 소화했다.","source":"calendar","score":null},"fri":{"text":"G2A 8시간 일정을 마치고 박성찬 청모까지 이어져 하루가 꽉 찼다.","source":"calendar","score":null},"sat":{"text":"조성선 집사님 따님과 윤지영 전도사님, 두 결혼식에 연달아 참석했다.","source":"calendar","score":null},"sun":{"text":"성경 파노라마 첫 세션에 참여하고, 저녁에는 마므레워십 썸네일 작업으로 주를 마무리했다.","source":"calendar","score":null}},"themes":[{"name":"내 기준으로 충분히","detail":"바쁜 회사 상황 앞에서 남의 속도가 아닌 자신의 기준으로 궁금한 것을 풀어가겠다는 방향을 스스로 정리했다.","recentWeeks":1},{"name":"피로 누적과 관계 마찰","detail":"몸 상태가 좋지 않은 날 파트장님께 순간적으로 짜증을 냈고, 곧바로 사과하며 관계를 회복했다. 피로가 쌓이면 관계에서 먼저 신호가 나온다는 것을 이번 주에 다시 확인했다.","recentWeeks":1},{"name":"쉬는 것도 계획","detail":"목요예배부터 주말까지 빈 시간이 없다는 걸 미리 알고 수요일에 반차를 신청했다. 여백을 의도적으로 만들어두는 움직임이었다.","recentWeeks":1}],"synthesisSource":"llm","committedByDay":{"mon":10.51,"tue":11.01,"wed":9.51,"thu":16,"fri":10.92,"sat":5.42,"sun":4},"ministryByDay":{"mon":1.17,"tue":2.67,"wed":0.17,"thu":4.67,"fri":8.17,"sat":3.92,"sun":2.5},"sleepByDay":{"mon":6.83,"tue":6.83,"wed":6.83,"thu":6,"fri":5.42,"sat":6.33,"sun":8.5},"buckets":{"sleep":46.7,"work":38.2,"commute":5.9,"ministry":26.8,"worship":5.8,"career":0,"growth":0,"social":0,"family":0,"selfcare":0,"exercise":0,"life":44.7},"peakDay":"thu","peakCommitted":16,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"drivingHours":5.9,"flags":{"satSleepover":true,"sundaySleep7":true,"exerciseZero":true,"selfcareZero":true,"restZero":true},"_lateNightCount":1,"_latestEnd":"23:45","dateByDay":{"mon":"2026-10-05","tue":"2026-10-06","wed":"2026-10-07","thu":"2026-10-08","fri":"2026-10-09","sat":"2026-10-10","sun":"2026-10-11"},"nonCalendarRoutines":{"totalMinutes":60,"items":[{"id":"pastoral-briefing","title":"기독교/목회 브리핑","category":"ministry","occurrences":6,"minutes":60,"days":["2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-10"],"activeFrom":"2026-08-05"},{"id":"thursday-worship-sheet-music","title":"목요예배 악보 만들기","category":"ministry","occurrences":1,"minutes":0,"days":["2026-10-08"],"activeFrom":"2026-08-05"}]},"routineMeta":{"quarter":4,"quarters":[4],"officeDays":["thu","fri"],"sunday":{"wake":"08:30","prepStart":"09:00","start":"08:00","end":"17:00","worship":["11:00","14:00"]},"yjds":{"name":"양평예수제자학교","leader":"안길함 목사님","role":"예배 반주","prepLeadHours":1}},"delta":{"peakCommitted":-0.8,"ministry":11.3,"sleepAvg":0},"zeroRestStreak":17,"changes":[{"key":"ministry","label":"사역·예배","value":32.6,"unit":"h","weekDelta":11.3,"baseline":18.7,"baselineDelta":13.9,"significant":true,"confidence":"measured","score":6.95,"tone":"up","title":"사역·예배 32.6h","detail":"지난주보다 +11.3h · 최근 4주 평균 18.7h 대비 +13.9h"},{"key":"self","label":"나를 위한 시간 비중","value":8,"unit":"%p","weekDelta":-5,"baseline":15.3,"baselineDelta":-7.3,"significant":true,"confidence":"measured","score":1.825,"tone":"down","title":"나를 위한 시간 비중 8%p","detail":"지난주보다 -5%p · 최근 4주 평균 15.3%p 대비 -7.3%p"},{"key":"life_context","label":"생활 업데이트","value":1,"unit":"건","weekDelta":1,"baseline":0.3,"baselineDelta":0.7,"significant":true,"confidence":"measured","score":1,"tone":"up","title":"생활 업데이트 1건","detail":"지난주보다 +1건 · 최근 4주 평균 0.3건 대비 +0.7건 · 계획 정정 1건 · 몸 상태 신호 0건"}],"changesAll":[{"key":"ministry","label":"사역·예배","value":32.6,"unit":"h","weekDelta":11.3,"baseline":18.7,"baselineDelta":13.9,"significant":true,"confidence":"measured","score":6.95,"tone":"up","title":"사역·예배 32.6h","detail":"지난주보다 +11.3h · 최근 4주 평균 18.7h 대비 +13.9h"},{"key":"work","label":"본업","value":38.2,"unit":"h","weekDelta":-7.6,"baseline":45.7,"baselineDelta":-7.5,"significant":true,"confidence":"measured","score":1.9,"tone":"down","title":"본업 38.2h","detail":"지난주보다 -7.6h · 최근 4주 평균 45.7h 대비 -7.5h"},{"key":"self","label":"나를 위한 시간 비중","value":8,"unit":"%p","weekDelta":-5,"baseline":15.3,"baselineDelta":-7.3,"significant":true,"confidence":"measured","score":1.825,"tone":"down","title":"나를 위한 시간 비중 8%p","detail":"지난주보다 -5%p · 최근 4주 평균 15.3%p 대비 -7.3%p"},{"key":"commute","label":"이동","value":5.9,"unit":"h","weekDelta":-3.3,"baseline":8.9,"baselineDelta":-3,"significant":true,"confidence":"measured","score":1.65,"tone":"down","title":"이동 5.9h","detail":"지난주보다 -3.3h · 최근 4주 평균 8.9h 대비 -3h"},{"key":"felt","label":"체감 평균","value":4.2,"unit":"점","weekDelta":-0.8,"baseline":5,"baselineDelta":-0.8,"significant":true,"confidence":"measured","score":1.6,"tone":"down","title":"체감 평균 4.2점","detail":"지난주보다 -0.8점 · 최근 4주 평균 5점 대비 -0.8점"},{"key":"life","label":"생활·여가","value":44.7,"unit":"h","weekDelta":4.7,"baseline":46.3,"baselineDelta":-1.6,"significant":true,"confidence":"measured","score":1.175,"tone":"up","title":"생활·여가 44.7h","detail":"지난주보다 +4.7h · 최근 4주 평균 46.3h 대비 -1.6h"},{"key":"life_context","label":"생활 업데이트","value":1,"unit":"건","weekDelta":1,"baseline":0.3,"baselineDelta":0.7,"significant":true,"confidence":"measured","score":1,"tone":"up","title":"생활 업데이트 1건","detail":"지난주보다 +1건 · 최근 4주 평균 0.3건 대비 +0.7건 · 계획 정정 1건 · 몸 상태 신호 0건"},{"key":"spread","label":"요일 편차","value":3.7,"unit":"h","weekDelta":-0.9,"baseline":3.1,"baselineDelta":0.6,"significant":false,"confidence":"measured","score":0.9,"tone":"flat","title":"요일 편차 3.7h","detail":"지난주보다 -0.9h · 최근 4주 평균 3.1h 대비 +0.6h"},{"key":"peak","label":"가장 긴 하루","value":16,"unit":"h","weekDelta":-0.8,"baseline":15.3,"baselineDelta":0.7,"significant":false,"confidence":"measured","score":0.8,"tone":"flat","title":"가장 긴 하루 16h","detail":"지난주보다 -0.8h · 최근 4주 평균 15.3h 대비 +0.7h"},{"key":"late","label":"밤 10시 이후 일정","value":1,"unit":"건","weekDelta":0,"baseline":0.5,"baselineDelta":0.5,"significant":false,"confidence":"measured","score":0.5,"tone":"flat","title":"밤 10시 이후 일정 1건","detail":"지난주보다 0건 · 최근 4주 평균 0.5건 대비 +0.5건"},{"key":"sleep","label":"수면 평균","value":6.68,"unit":"h","weekDelta":0,"baseline":6.7,"baselineDelta":0,"significant":false,"confidence":"estimate","score":0,"tone":"flat","title":"수면 평균 6.68h","detail":"지난주보다 0h · 최근 4주 평균 6.7h 대비 0h · 수면은 추정치"},{"key":"rest","label":"완전한 휴일","value":0,"unit":"일","weekDelta":0,"baseline":0,"baselineDelta":0,"significant":false,"confidence":"measured","score":0,"tone":"flat","title":"완전한 휴일 0일","detail":"지난주보다 0일 · 최근 4주 평균 0일 대비 0일"}],"notableEvents":{"comparisonReady":true,"items":[{"title":"G2A","category":"ministry","start":"2026-10-09T10:00:00+09:00","end":"2026-10-09T18:00:00+09:00","durationHours":8,"allDay":false,"periodEvent":false,"day":"fri","reasons":["최근 4주에 없던 일정","8h 장시간 일정"]},{"title":"문성은 목사 - 목요예배","category":"worship","start":"2026-10-08T19:30:00+09:00","end":"2026-10-08T22:00:00+09:00","durationHours":2.5,"allDay":false,"periodEvent":false,"day":"thu","reasons":["최근 4주에 없던 일정"]},{"title":"성경 파노라마 [1-1]","category":"ministry","start":"2026-10-11T15:00:00+09:00","end":"2026-10-11T16:30:00+09:00","durationHours":1.5,"allDay":false,"periodEvent":false,"day":"sun","reasons":["최근 4주에 없던 일정"]},{"title":"목요예배 인쇄용 이미지","category":"worship","start":"2026-10-05T20:45:00+09:00","end":"2026-10-05T21:45:00+09:00","durationHours":1,"allDay":false,"periodEvent":false,"day":"mon","reasons":["최근 4주에 없던 일정"]}],"note":"최근 4주와 비교해 예외적인 일정만 골랐습니다."},"discovery":{"title":"사역·예배 32.6h","detail":"지난주보다 +11.3h · 최근 4주 평균 18.7h 대비 +13.9h"},"lenses":[{"key":"others_self","tone":"watch","othersPct":92,"selfPct":8,"title":"타인 92% · 나 8%","detail":"방향이 분명한 시간 중 타인을 향한 시간은 36h, 나를 위한 시간은 3h입니다."},{"key":"recovery_debt","tone":"note","weekly":null,"balance":null,"confidence":"estimate","title":"회복 판단은 보류","detail":"수면 6.68h는 기본 루틴 추정치입니다. 실제 수면이 확인되기 전에는 회복 부채를 누적하지 않습니다."},{"key":"rhythm","tone":"note","variance":3.7,"lateNight":1,"title":"요일 편차 3.7h · 밤 10시 이후 1건","detail":"가장 긴 날은 목요일 16h였습니다."},{"key":"perceived","tone":"note","present":true,"avgScore":4.2,"count":3,"gap":null,"title":"체감 4.2점 · 3일 기록","detail":"기록된 날에는 체감과 일정 부하가 대체로 같은 방향이었습니다."}],"lifeContext":{"present":true,"count":1,"days":1,"planCorrections":1,"bodySignals":0,"workSignals":0,"themeCounts":{"body":0,"location":1,"work":0,"relationship":0,"emotion":0},"topThemes":[{"key":"location","label":"위치·이동","count":1}],"carriedCount":0,"recentCount":2,"recentDays":2,"recentTopThemes":[{"key":"location","label":"위치·이동","count":2}],"detail":"생활 업데이트 1건·1일, 계획 정정 1건, 몸 상태 신호 0건 · 주요 맥락 위치·이동"},"preview":{"title":"다음 주 미리보기","detail":"가장 무거운 날은 목요일 사역 2.5h.","flags":[],"banners":[],"dayHours":{"mon":1,"tue":0.8,"wed":0,"thu":2.5,"fri":2,"sat":0,"sun":1.5},"loadByDay":{"mon":1,"tue":0.8,"wed":0.5,"thu":3.5,"fri":2,"sat":1,"sun":1.5},"bucketHours":{"worship":3.3,"ministry":4.5,"life":2.5},"eventCount":12,"totalHours":10.3,"heaviestDay":"thu","lightestDay":"wed","openDays":0},"recommendations":[{"p":1,"title":"G2A처럼 긴 새 일정 뒤 20분 비우기","detail":"다음에 G2A 같은 장시간 일정이 생기면 직후 20분을 의도적으로 비워두고, 그날 자기보고에서 체력 소진 정도가 달라졌는지 확인한다.","source":"llm"}],"experimentCandidate":{"p":1,"title":"G2A 뒤 20분 비우기","detail":"새 일정이 남긴 체력 비용을 다음 자기보고에서 확인합니다."},"subjective":{"present":true,"avgScore":4.2,"count":3,"gap":null,"detail":"기록된 날에는 체감과 일정 부하가 대체로 같은 방향이었습니다."},"timeline":{"mon":[[0,7,"sleep"],[7,8,"life"],[8,17,"work"],[17,21,"life"],[21,22,"ministry"],[22,24,"life"]],"tue":[[0,7,"sleep"],[7,8,"life"],[8,12.5,"work"],[12.5,13.5,"ministry"],[13.5,17,"work"],[17,20,"life"],[20,21.5,"ministry"],[21.5,24,"life"]],"wed":[[0,7,"sleep"],[7,8,"life"],[8,17,"work"],[17,24,"life"]],"thu":[[0,6,"sleep"],[6,7,"life"],[7,7.5,"commute"],[7.5,8,"life"],[8,17,"work"],[17,18.5,"commute"],[18.5,19.5,"life"],[19.5,24,"ministry"]],"fri":[[0,5.5,"sleep"],[5.5,7,"life"],[7,7.5,"commute"],[7.5,8,"life"],[8,10,"work"],[10,18,"ministry"],[18,24,"life"]],"sat":[[0,6.5,"sleep"],[6.5,7,"life"],[7,8.5,"commute"],[8.5,12,"life"],[12,14,"ministry"],[14,16,"life"],[16,18,"ministry"],[18,24,"life"]],"sun":[[0,8.5,"sleep"],[8.5,15,"life"],[15,16.5,"ministry"],[16.5,17,"life"],[17,18.5,"commute"],[18.5,21,"life"],[21,22,"ministry"],[22,24,"life"]]},"trend":[{"week":"2026-W34","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":84,"selfPct":16,"lateNightCount":2,"loadStdev":3.6,"avgScore":3.7,"sleepKnown":false,"buckets":{"work":46.4,"ministry":10.5,"worship":8,"life":47.6,"sleep":46.7,"commute":8.8}},{"week":"2026-W35","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":85,"selfPct":15,"lateNightCount":1,"loadStdev":3.6,"avgScore":4.1,"sleepKnown":false,"buckets":{"work":46.4,"ministry":14.3,"worship":4.5,"life":48.3,"sleep":46.7,"commute":7.8}},{"week":"2026-W36","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":83,"selfPct":17,"lateNightCount":0,"loadStdev":3.9,"avgScore":null,"sleepKnown":false,"buckets":{"work":46.4,"ministry":14.8,"worship":3,"life":48.3,"sleep":46.7,"commute":8.8}},{"week":"2026-W37","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":84,"selfPct":16,"lateNightCount":0,"loadStdev":2.6,"avgScore":null,"sleepKnown":false,"buckets":{"work":44.4,"ministry":15.5,"worship":2.8,"life":49.8,"sleep":46.7,"commute":8.8}},{"week":"2026-W38","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":86,"selfPct":14,"lateNightCount":1,"loadStdev":1.6,"avgScore":null,"sleepKnown":false,"buckets":{"work":46.1,"ministry":12.5,"worship":9.8,"life":44.1,"sleep":46.7,"commute":8.8}},{"week":"2026-W39","peakCommitted":14.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":82,"selfPct":18,"lateNightCount":0,"loadStdev":3.7,"avgScore":null,"sleepKnown":false,"buckets":{"work":46.4,"ministry":10.5,"worship":2.5,"life":51.1,"sleep":46.7,"commute":8.8}},{"week":"2026-W40","peakCommitted":16.8,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":87,"selfPct":13,"lateNightCount":1,"loadStdev":4.6,"avgScore":5,"sleepKnown":false,"buckets":{"work":45.8,"ministry":12,"worship":9.3,"life":40,"sleep":46.7,"commute":9.2}},{"week":"2026-W41","peakCommitted":16,"restDays":0,"sleepAvg":6.68,"sleepMin":5.42,"othersPct":92,"selfPct":8,"lateNightCount":1,"loadStdev":3.7,"avgScore":4.2,"sleepKnown":false,"buckets":{"work":38.2,"ministry":26.8,"worship":5.8,"life":44.7,"sleep":46.7,"commute":5.9}}]};
 
 const DAYS=['mon','tue','wed','thu','fri','sat','sun'];
 const KO={mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'};
@@ -301,104 +357,67 @@ const num=(v)=>Number.isFinite(v)?v:'–';
 const hm=(h)=>`${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;
 const round1=(v)=>Math.round(v*10)/10;
 
-function sparkline(values,w=78,h=24){
- const pts=values.map((v,i)=>[i,v]).filter(([,v])=>Number.isFinite(v));
- if(pts.length<3)return '';
- const lo=Math.min(...pts.map((p)=>p[1])),hi=Math.max(...pts.map((p)=>p[1])),span=hi-lo||1;
- const X=(i)=>3+(values.length>1?i/(values.length-1):0)*(w-6);
- const Y=(v)=>h-3-(v-lo)/span*(h-6);
- const d=pts.map(([i,v],k)=>`${k?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
- const last=pts[pts.length-1];
- return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><path d="${d}"/><circle cx="${X(last[0]).toFixed(1)}" cy="${Y(last[1]).toFixed(1)}" r="2.6"/></svg>`;
-}
-
 (function render(){
  const m=DATA;
  if(!m){document.body.innerHTML='<p style="padding:40px">데이터 없음</p>';return;}
  const label=m.weekLabel||m.week;
  const trend=Array.isArray(m.trend)?m.trend:[];
- const lens=(key)=>(m.lenses||[]).find((x)=>x.key===key);
- const split=lens('others_self'),recovery=lens('recovery_debt'),rhythm=lens('rhythm'),perceived=lens('perceived');
- const ministryTotal=round1((m.buckets.ministry||0)+(m.buckets.worship||0));
+ const tip=el('tip');
+ const signed=(v,unit)=>Number.isFinite(v)?`${v>0?'+':''}${v}${unit}`:'–';
 
- document.title=`${label} 주간 리포트`;
+ document.title=`${label} 주간 회고`;
  el('eyebrow').textContent=`WEEKLY REFLECTION · ${label}`;
- el('opening').textContent=m.openingNote.text;
- el('lede').innerHTML=`가장 긴 날 <b>${KO[m.peakDay]} ${m.peakCommitted}h</b> · 사역과 예배 <b>${ministryTotal}h</b> · 수면 <b>${m.sleepAvg}h</b><span class="confidence">${m.sleepKnown?'실제':'추정'}</span>`;
+ el('opening').textContent=m.openingNote?.text||'';
+  const lines=m.dayLines||{};
+  const linesForDay=(day)=>lines[day]||{};
 
- // ---- stat tiles, each with its own 8-week sparkline ----
- const series=(key)=>trend.map((row)=>row[key]);
- const tiles=[
-  {v:m.restDays,u:'일',l:'완전한 휴일',s:series('restDays')},
-  {v:m.peakCommitted,u:'h',l:'가장 긴 하루',s:series('peakCommitted')},
-  {v:m.sleepAvg,u:'h',l:`수면 평균 · ${m.sleepKnown?'실측':'추정'}`,s:series('sleepAvg')},
-  {v:split?.selfPct,u:'%',l:'나를 위한 비중',s:series('selfPct')},
-  {v:m._lateNightCount||0,u:'건',l:'밤 10시 이후',s:series('lateNightCount')},
- ];
- el('stats').innerHTML=tiles.map((t)=>
-  `<div class="stat"><strong class="num">${num(t.v)}<small>${t.u}</small></strong><div class="l">${esc(t.l)}</div><div class="sparkwrap">${sparkline(t.s)}</div></div>`).join('');
+ // ---- scenes ----
+ const scenes=Array.isArray(m.scenes)?m.scenes:[];
+ el('sceneSection').hidden=!scenes.length;
+ if(scenes.length)el('scenes').innerHTML=scenes.map((s)=>
+  `<article class="card scene"><span class="sday">${KO[s.day]?`${KO[s.day]}요일`:''}</span><h3>${esc(s.title)}</h3><p>${esc(s.detail)}</p></article>`).join('');
 
- // ---- banners: streaks, zero buckets, corrections ----
- const banners=[];
- if((m.zeroRestStreak||0)>=2)
-  banners.push(`<b>완전한 휴일 0일 — ${m.zeroRestStreak}주 연속</b><ul><li>한 주만 보면 안 보이지만, 누적으로는 가장 오래 이어진 신호입니다.</li></ul>`);
- const zero=[];
- if(m.flags?.exerciseZero)zero.push('운동 0h');
- if(m.flags?.selfcareZero)zero.push('자기돌봄 0h');
- if(zero.length)banners.push(`<b>이번 주 0시간</b><ul><li>${zero.join(' · ')}</li></ul>`);
- const corr=m.corrections;
- if(corr?.present){
-  const rows=[];
-  if(corr.sleepOverride&&Object.keys(corr.sleepOverride).length)
-   rows.push(`수면 보정: ${Object.entries(corr.sleepOverride).map(([d,v])=>`${KO[d]||esc(d)} ${esc(v)}h`).join(', ')}`);
-  for(const c of corr.categoryOverrides||[])rows.push(`분류 보정: ${esc(c.label||c.match||c.title)} → ${esc(c.bucket)}${c.note?` (${esc(c.note)})`:''}`);
-  for(const n of corr.notes||[])rows.push(`메모: ${esc(n)}`);
-  if(rows.length)banners.push(`<b>보정 반영</b><ul>${rows.map((r)=>`<li>${r}</li>`).join('')}</ul>`);
- }
- el('banners').innerHTML=banners.map((b)=>`<div class="banner"><div>${b}</div></div>`).join('');
+ // ---- summarized self-reports ----
+ const records=DAYS.filter((day)=>linesForDay(day)?.source==='report'&&linesForDay(day)?.text)
+  .map((day)=>({day,line:linesForDay(day)}));
+ el('recordSection').hidden=!records.length;
+ if(records.length)el('records').innerHTML=records.map(({day,line})=>{
+  const date=(m.dateByDay?.[day]||'').match(/\d{4}-(\d{2})-(\d{2})/);
+  const score=Number.isFinite(line.score)?`${line.score}<small>/5</small>`:'기록함';
+  return `<article class="card record"><div class="rmeta"><span>${KO[day]}요일${date?` · ${Number(date[1])}월 ${Number(date[2])}일`:''}</span><span>${score}</span></div><p>${esc(line.text)}</p></article>`;
+ }).join('');
 
- // ---- 01 timeline ----
- const timeline=m.timeline;
- if(timeline){
-  const used=[];
-  for(const day of DAYS)for(const [,,type] of timeline[day]||[])if(!used.includes(type))used.push(type);
-  const order=['sleep','work','commute','ministry','life'];
-  used.sort((a,b)=>(order.indexOf(a)+1||99)-(order.indexOf(b)+1||99));
-  el('legend').innerHTML=used.map((t)=>`<span><i class="seg ${t}" style="${paint(catOf(t))}"></i>${esc(catOf(t).label)}</span>`).join('');
+ // ---- a line per day, each with its own 24h bar ----
+ const timeline=m.timeline||{};
+ const used=[];
+ for(const day of DAYS)for(const [,,type] of timeline[day]||[])if(!used.includes(type))used.push(type);
+ const order=['sleep','work','commute','ministry','life'];
+ used.sort((a,b)=>(order.indexOf(a)+1||99)-(order.indexOf(b)+1||99));
+ el('legend').innerHTML=used.map((t)=>`<span><i class="sw ${t}" style="${paint(catOf(t))}"></i>${esc(catOf(t).label)}</span>`).join('');
 
-  const grid=el('grid'),tip=el('tip');
-  const axis=document.createElement('div');axis.className='axis';
-  for(const h of [0,6,12,18,24]){const d=document.createElement('div');d.style.top=`${h/24*100}%`;d.textContent=h===24?'24':String(h);axis.appendChild(d);}
-  grid.appendChild(axis);
+ el('dayrows').innerHTML=DAYS.map((day)=>{
+  const line=lines[day]||{};
+  const segs=(timeline[day]||[]).map(([start,end,type])=>{
+   const text=`${catOf(type).label} · ${hm(start)}–${hm(end)} (${round1(end-start)}h)`;
+   return `<i class="hseg sw ${type}" style="width:${((end-start)/24*100).toFixed(2)}%;${paint(catOf(type))}" data-tip="${esc(text)}"></i>`;
+  }).join('');
+  const date=(m.dateByDay?.[day]||'').slice(5).replace('-','.');
+  const score=Number.isFinite(line.score)?`<div class="score num">${line.score}<small>/5</small></div>`:'<div class="score"></div>';
+  const norec=line.source==='calendar'?'<span class="norec">기록 없음</span>':'';
+  return `<div class="dayrow${day===m.peakDay?' peak':''}">
+   <div class="dname"><b>${KO[day]}</b><span>${esc(date)}</span></div>
+   <div><div class="hbar">${segs}</div><p class="dline">${esc(line.text||'')}${norec}</p></div>
+   ${score}</div>`;
+ }).join('');
+ el('dayrows').addEventListener('mousemove',(ev)=>{
+  const seg=ev.target.closest('.hseg');
+  if(!seg){tip.style.opacity='0';return;}
+  tip.style.opacity='1';tip.style.left=`${ev.clientX}px`;tip.style.top=`${ev.clientY}px`;tip.textContent=seg.dataset.tip;
+ });
+ el('dayrows').addEventListener('mouseleave',()=>{tip.style.opacity='0';});
 
-  for(const day of DAYS){
-   const col=document.createElement('div');col.className=`col${day===m.peakDay?' peak':''}`;
-   const stack=document.createElement('div');stack.className='stack';
-   for(const [start,end,type] of timeline[day]||[]){
-    const seg=document.createElement('div');
-    seg.className=`seg ${type}`;
-    seg.style.height=`${(end-start)/24*100}%`;
-    // backgroundColor, not the `background` shorthand — the shorthand would wipe
-    // the texture that .seg.sleep layers on top.
-    seg.style.backgroundColor=catOf(type).color;
-    seg.style.boxShadow="inset 0 0 0 1px var(--ring)";
-    const text=`${catOf(type).label} · ${hm(start)}–${hm(end)} (${round1(end-start)}h)`;
-    seg.addEventListener('mousemove',(ev)=>{tip.style.opacity='1';tip.style.left=`${ev.clientX}px`;tip.style.top=`${ev.clientY}px`;tip.textContent=text;});
-    seg.addEventListener('mouseleave',()=>{tip.style.opacity='0';});
-    stack.appendChild(seg);
-   }
-   col.appendChild(stack);
-   const name=document.createElement('div');name.className='dlabel';
-   name.textContent=`${KO[day]} ${(m.dateByDay?.[day]||'').slice(5).replace('-','.')}`;
-   col.appendChild(name);
-   const sub=document.createElement('div');sub.className='dsub';
-   sub.textContent=`구속 ${m.committedByDay[day]}h · 수면 ${m.sleepByDay?.[day]??'–'}h`;
-   col.appendChild(sub);
-   if(day===m.peakDay){const tag=document.createElement('div');tag.className='tag';tag.textContent='가장 긴 날';col.appendChild(tag);}
-   grid.appendChild(col);
-  }
-
-  // Table view: the same numbers without relying on hue at all.
+ // Table view: the same hours without relying on hue at all.
+ if(used.length){
   const totals={};
   for(const day of DAYS){totals[day]={};for(const [s,e,t] of timeline[day]||[])totals[day][t]=(totals[day][t]||0)+(e-s);}
   el('tHead').innerHTML=`<tr><th scope="col">구분</th>${DAYS.map((d)=>`<th scope="col">${KO[d]}</th>`).join('')}<th scope="col">합계</th></tr>`;
@@ -414,12 +433,21 @@ function sparkline(values,w=78,h=24){
    toggle.textContent=open?'표 닫기':'표로 보기';
   });
  }else{
-  el('grid').innerHTML='<p class="empty">이번 주 시간표 데이터가 없습니다.</p>';
   el('tableToggle').hidden=true;
  }
 
- // ---- 02 changes, with this week vs the 4-week baseline ----
- el('changes').innerHTML=(m.changes||[]).map((c)=>{
+ // ---- themes ----
+ const themes=Array.isArray(m.themes)?m.themes:[];
+ el('themeSection').hidden=!themes.length;
+ if(themes.length)el('themes').innerHTML=themes.map((t)=>{
+  const badge=t.recentWeeks>1?`최근 5주 중 ${t.recentWeeks}주`:'이번 주 처음';
+  return `<article class="card theme"><span class="badge">${badge}</span><h3>${esc(t.name)}</h3><p>${esc(t.detail)}</p></article>`;
+ }).join('');
+
+ // ---- what changed: only the significant moves up top, everything in the table ----
+ const all=Array.isArray(m.changesAll)?m.changesAll:[];
+ const moved=all.filter((c)=>c.significant);
+ el('changes').innerHTML=moved.length?moved.map((c)=>{
   const hasBase=Number.isFinite(c.baseline)&&Number.isFinite(c.value);
   const scale=hasBase?Math.max(c.value,c.baseline)*1.15||1:0;
   const gauge=hasBase?`<div class="gauge">
@@ -431,46 +459,30 @@ function sparkline(values,w=78,h=24){
   const arrow=dir==='up'?'▲':dir==='down'?'▼':'±';
   const deltaText=Number.isFinite(d)?`<span class="delta ${dir}">${arrow} ${Math.abs(d)}${esc(c.unit||'')}</span> vs 지난주`:'지난주 비교 기준 없음';
   return `<article class="card change"><h3>${esc(c.title)}</h3><p class="why">${deltaText}</p>${gauge}</article>`;
+ }).join(''):'<div class="card empty">지난주와 크게 달라진 수치는 없습니다.</div>';
+
+ if((m.zeroRestStreak||0)>=2){
+  el('streak').hidden=false;
+  el('streak').textContent=`완전한 휴일 0일 — ${m.zeroRestStreak}주 연속`;
+ }
+
+ el('numBody').innerHTML=all.map((c)=>{
+  const unit=esc(c.unit||'');
+  const estimate=c.confidence==='estimate'?' <span class="confidence">추정</span>':'';
+  return `<tr><th scope="row">${esc(c.label)}${estimate}</th><td>${num(c.value)}${unit}</td><td>${signed(c.weekDelta,unit)}</td><td>${Number.isFinite(c.baseline)?`${c.baseline}${unit}`:'–'}</td></tr>`;
  }).join('');
 
- // ---- 03 notable events ----
- el('eventNote').textContent=m.notableEvents?.note||'';
- const events=m.notableEvents?.items||[];
- el('events').innerHTML=events.length
-  ?events.map((x)=>{
-    const when=x.durationHours?` · ${x.durationHours}h`:(x.allDay||x.periodEvent)?' · 기간 일정':'';
-    return `<article class="card event"><h3>${esc(x.title)}</h3><p>${KO[x.day]||''}요일${when}</p><div>${(x.reasons||[]).map((r)=>`<span class="reason">${esc(r)}</span>`).join('')}</div></article>`;
-   }).join('')
-  :'<div class="card empty">이번 주에는 비교 기준을 벗어난 일정이 없었습니다.</div>';
-
- // ---- 04 insight ----
- el('insightTitle').textContent=m.integratedInsight.title;
- el('insightDetail').textContent=m.integratedInsight.detail;
-
- // ---- 05 lenses ----
- const cards=[];
- if(split)cards.push(`<article class="card lens"><h3>${esc(split.title)}</h3><p>${esc(split.detail)}</p>
-   <div class="split"><i class="hi" style="width:${split.othersPct}%"></i><i class="lo" style="width:${split.selfPct}%"></i></div>
-   <div class="splitlab"><span>타인 ${split.othersPct}%</span><span>나 ${split.selfPct}%</span></div></article>`);
- if(recovery)cards.push(`<article class="card lens"><h3>${esc(recovery.title)}</h3><p>${esc(recovery.detail)}</p></article>`);
- if(rhythm)cards.push(`<article class="card lens"><h3>${esc(rhythm.title)}</h3><p>${esc(rhythm.detail)}</p></article>`);
- if(perceived?.present){
-  const score=Math.round(perceived.avgScore||0);
-  cards.push(`<article class="card lens"><h3>${esc(perceived.title)}</h3><p>${esc(perceived.detail)}</p>
-   <div class="dots">${[1,2,3,4,5].map((n)=>`<i class="${n<=score?'on':''}"></i>`).join('')}</div></article>`);
- }else{
-  const life=m.lifeContext;
-  const themes=(life?.recentTopThemes||[]).map((t)=>t.label).join(', ');
-  cards.push(life?.present
-   ?`<article class="card lens"><h3>생활 맥락 ${life.count}건 · 최근 4주 ${life.recentCount??life.count}건</h3><p>${esc(life.detail)}${themes?` · 최근 주요 맥락 ${esc(themes)}`:''}</p></article>`
-   :'<article class="card lens"><h3>자기보고 기록 없음</h3><p>일정 부하와 체감을 연결할 근거가 아직 없습니다.</p></article>');
+ const corr=m.corrections;
+ if(corr?.present){
+  const rows=[];
+  if(corr.sleepOverride&&Object.keys(corr.sleepOverride).length)
+   rows.push(`수면 보정: ${Object.entries(corr.sleepOverride).map(([d,v])=>`${KO[d]||esc(d)} ${esc(v)}h`).join(', ')}`);
+  for(const c of corr.categoryOverrides||[])rows.push(`분류 보정: ${esc(c.label||c.match||c.title)} → ${esc(c.bucket)}${c.note?` (${esc(c.note)})`:''}`);
+  for(const n of corr.notes||[])rows.push(`메모: ${esc(n)}`);
+  if(rows.length)el('corrNotes').innerHTML=`<div class="corr"><b>보정 반영</b><ul>${rows.map((r)=>`<li>${r}</li>`).join('')}</ul></div>`;
  }
- el('lenses').innerHTML=cards.join('');
- el('lensHeading').textContent=`${['','한','두','세','네','다섯'][cards.length]||cards.length} 가지 렌즈`;
 
- // ---- 06 eight-week trend, one small multiple per measure ----
- // Deliberately three charts, never one chart with three y-scales: hours,
- // hours and a 1-5 score do not share an axis.
+ // ---- eight-week trend, one small multiple per measure ----
  const specs=[
   {key:'sleepAvg',title:'수면 평균',unit:'h',known:(row)=>row.sleepKnown},
   {key:'peakCommitted',title:'가장 긴 하루',unit:'h',known:()=>true},
@@ -539,78 +551,13 @@ function sparkline(values,w=78,h=24){
   });
  }
 
- // ---- 07 allocation ----
- const rows=[
-  ['work','본업',m.buckets.work],
-  ['sleep','수면',m.buckets.sleep],
-  ['life','생활·여가',m.buckets.life],
-  ['ministry','사역·예배',ministryTotal],
-  ['commute','이동',m.buckets.commute],
-  ['social','관계',m.buckets.social],
-  ['growth','성장',m.buckets.growth],
-  ['career','커리어',m.buckets.career],
-  ['selfcare','자기돌봄',m.buckets.selfcare],
-  ['exercise','운동',m.buckets.exercise],
- ].filter(([,,h])=>(h||0)>0);
- const barMax=Math.max(...rows.map(([,,h])=>h));
- el('bars').innerHTML='<h3>카테고리별</h3>'+rows.map(([key,name,h])=>
-  `<div class="bar"><span>${name}</span><div class="track"><div class="fill sw ${key}" style="width:${(h/barMax*100).toFixed(1)}%;${paint(catOf(key))}"></div></div><span class="val">${h}<small>h · ${(h/168*100).toFixed(1)}%</small></span></div>`).join('');
-
- const dayMax=Math.max(...DAYS.map((d)=>m.committedByDay[d]))||1;
- el('days').innerHTML='<h3>요일별 구속 시간</h3>'+DAYS.map((d)=>
-  `<div class="day ${d===m.peakDay?'peak':''}"><span>${KO[d]}</span><div class="track"><div class="fill" style="width:${(m.committedByDay[d]/dayMax*100).toFixed(1)}%"></div></div><span class="val">${m.committedByDay[d]}h</span></div>`).join('');
-
- // ---- 08 next week ----
+ // ---- next week ----
  const p=m.preview||{};
  el('previewTitle').textContent=p.title||'다음 주 미리보기';
  el('previewDetail').textContent=p.detail||'';
-
- const thisWeekLoad=round1(DAYS.reduce((sum,d)=>sum+m.committedByDay[d],0));
- el('nextStats').innerHTML=[
-  {v:p.eventCount,u:'건',l:'등록된 일정'},
-  {v:p.totalHours,u:'h',l:'예정 시간'},
-  {v:p.openDays,u:'일',l:'일정이 빈 날'},
-  {v:p.heaviestDay?`${KO[p.heaviestDay]}`:'–',u:'',l:`가장 무거운 날${Number.isFinite(p.loadByDay?.[p.heaviestDay])?` · ${p.loadByDay[p.heaviestDay]}h`:''}`},
- ].map((t)=>`<div class="stat"><strong class="num">${num(t.v)}<small>${t.u}</small></strong><div class="l">${esc(t.l)}</div></div>`).join('');
-
- // Bars show total scheduled load; the ministry share is drawn inside it, since
- // ministry is what the overload flags are calibrated against.
- const load=p.loadByDay,ministry=p.dayHours;
- if(load&&Object.values(load).some((v)=>v>0)){
-  const pvMax=Math.max(...Object.values(load));
-  el('pvbars').innerHTML=DAYS.map((d)=>{
-   const total=load[d]||0,min=ministry?.[d]||0;
-   const heavy=d===p.heaviestDay&&total>0;
-   const rest=Math.max(0,total-min);
-   return `<div class="pvbar ${heavy?'heavy':''}"><div class="pvtrack"><i style="height:${(total/pvMax*100).toFixed(1)}%">`
-    +`<u style="height:${total?(rest/total*100).toFixed(1):0}%"></u><b style="height:${total?(min/total*100).toFixed(1):0}%"></b>`
-    +`</i></div><span>${KO[d]}${total?`<br>${total}h`:''}</span></div>`;
-  }).join('');
-  el('pvlegend').innerHTML=`<div class="legend" style="margin:14px 0 0"><span><i style="${paint(catOf('ministry'))}"></i>사역·예배</span><span><i style="${paint(FOLD)}"></i>그 외 일정</span></div>`;
- }else{
-  el('pvbars').innerHTML='';el('pvlegend').innerHTML='';
- }
-
- const chips=[
-  ...(p.flags||[]).map((f)=>`<span class="pvchip warn">⚠ ${esc(f)}</span>`),
-  ...(p.banners||[]).map((b)=>`<span class="pvchip">🗓 ${esc(b)}</span>`),
- ];
- // Only worth naming a free day when there is exactly one; the count tile
- // already covers the case where several are open.
- if(p.openDays===1&&p.lightestDay)
-  chips.push(`<span class="pvchip">🌿 ${KO[p.lightestDay]}요일만 비어 있음</span>`);
- if(Number.isFinite(p.totalHours))
-  chips.push(`<span class="pvchip">이번 주 구속 ${thisWeekLoad}h — 루틴 포함이라 직접 비교는 어려움</span>`);
- el('pvchips').innerHTML=chips.join('');
-
  const exp=m.recommendations?.[0]||m.experimentCandidate;
- el('experimentTitle').textContent=exp?`🧪 ${exp.title}`:'실험 없음';
+ el('experimentTitle').textContent=exp?.title?`🧪 ${exp.title}`:'실험 없음';
  el('experimentDetail').textContent=exp?.detail||'';
- // When Claude wrote the experiment, the computed candidate still says what the
- // numbers alone would have picked — worth showing rather than discarding.
- const alt=m.experimentCandidate;
- el('experimentAlt').innerHTML=(alt&&alt.title!==exp?.title)
-  ?`<div class="altexp"><b>계산이 고른 다른 후보</b><p><b style="color:var(--ink)">${esc(alt.title)}</b> — ${esc(alt.detail)}</p></div>`:'';
 
  // ---- footer ----
  const meta=m.routineMeta||{};
@@ -623,7 +570,7 @@ function sparkline(values,w=78,h=24){
   meta.yjds?`${meta.yjds.name} ${meta.yjds.prepLeadHours}h 전 준비`:null,
   routineMinutes?`캘린더 밖 루틴 ${round1(routineMinutes/60)}h`:null,
  ].filter(Boolean).join(' · ');
- el('foot').innerHTML=`${esc(facts)}<br>일정 원문과 생활 업데이트 이력은 비공개 분석용으로만 저장 · 이 페이지의 시간표는 30분 단위로 반올림한 값 · 통합 해석 ${m.synthesisSource==='llm'?'Claude':'자동'} · ${esc(label)}`;
+ el('foot').innerHTML=`${esc(facts)}<br>장면·요일별 문장·주제는 기록을 바탕으로 다시 쓴 글이며 원문은 싣지 않습니다 · 시간표는 30분 단위로 반올림한 값 · 서술 ${m.synthesisSource==='llm'?'Claude':'자동'} · ${esc(label)}`;
 })();
 </script>
 </body></html>
