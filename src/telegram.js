@@ -1,4 +1,4 @@
-// telegram.js — send the report (with force_reply for sleep) and read replies on reconcile.
+// telegram.js — send the report and, on reconcile, read a sleep reply to it.
 const API = (t, m) => `https://api.telegram.org/bot${t}/${m}`;
 
 export async function sendReport(text) {
@@ -8,13 +8,14 @@ export async function sendReport(text) {
     body: JSON.stringify({
       chat_id: process.env.TELEGRAM_CHAT_ID, text, parse_mode: 'Markdown',
       disable_web_page_preview: false,
-      reply_markup: { force_reply: true, input_field_placeholder: '예: 6.5 / 목5 금5.5' },
     }),
   });
   const j = await r.json();
   if (!r.ok || !j.ok) throw new Error(`Telegram sendMessage failed: ${j.description || r.status}`);
-  return j.result?.message_id;            // store this to detect the reply later
+  return j.result?.message_id;            // store this to detect a reply later
 }
+
+
 
 // On reconcile run: find a reply to our report message and parse a sleep override.
 export async function readSleepReply(reportMsgId) {

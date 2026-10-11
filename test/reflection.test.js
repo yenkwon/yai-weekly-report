@@ -1,3 +1,4 @@
+import { sendReport } from '../src/telegram.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeText, longestCommonRun, sourceTexts, overlapsSource } from '../src/reflectionGuard.js';
@@ -275,7 +276,7 @@ test('synthesizeWeekly without an API key returns the computed reflection for an
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { publicReport, appendHistory, historyPatch } from '../src/renderReportV2.js';
+import { publicReport, appendHistory, historyPatch, summaryText } from '../src/renderReportV2.js';
 import { trendSlice } from '../src/publicPayload.js';
 
 test('history keeps theme names only, never the written sentences', () => {
@@ -315,4 +316,78 @@ test('public payload carries the reflection and still drops every private origin
   const serialized = JSON.stringify(safe);
   assert.equal(serialized.includes('민감한 수요일 원문'), false);
   assert.equal(serialized.includes('비공개 생활 업데이트 원문'), false);
+});
+
+
+const MESSAGE_REPORT = {
+  week: '2026-W24', weekLabel: '2026-W24 : 06.08 - 06.14',
+  openingNote: { text: '사역이 길었지만 마음은 가벼웠던 한 주.' },
+  scenes: [{ day: 'thu', title: '예배에 붙들린 저녁', detail: '본문' }, { day: 'sat', title: '가족 나들이', detail: '본문' }],
+  changesAll: [
+    { key: 'sleep', significant: false, title: '수면 평균 6.7h', detail: '지난주보다 +0h' },
+    { key: 'ministry', significant: true, title: '사역·예배 21.3h', detail: '지난주보다 +8.3h · 최근 4주 평균 17.9h 대비 +3.4h' },
+  ],
+  recommendations: [{ title: '빈 저녁 하루 지키기', detail: '설명' }],
+  notableEvents: { items: [{ title: '특별 일정 제목', reasons: ['새 일정'] }] },
+  preview: { title: '다음 주 미리보기', detail: '금요일 사역 7.5h' },
+  sleepKnown: false,
+};
+
+test('the weekly message is short: opening, scene titles, one change, link', () => {
+  const text = summaryText(MESSAGE_REPORT, 'https://example.test/weeks/2026-W24.html');
+  assert.deepEqual(text.split('\n'), [
+    '사역이 길었지만 마음은 가벼웠던 한 주.',
+    '',
+    '⚖️ *2026-W24 : 06.08 - 06.14*',
+    '',
+    '*이번 주의 장면*',
+    '• 목 — 예배에 붙들린 저녁',
+    '• 토 — 가족 나들이',
+    '',
+    '*달라진 것* 사역·예배 21.3h — 지난주보다 +8.3h · 최근 4주 평균 17.9h 대비 +3.4h',
+    '',
+    '📊 회고 열기 → https://example.test/weeks/2026-W24.html',
+  ]);
+  for (const gone of ['빈 저녁 하루 지키기', '특별 일정 제목', '다음 주 미리보기', '수면은 추정치라'])
+    assert.equal(text.includes(gone), false, gone);
+});
+
+test('the message drops blocks that have nothing to say', () => {
+  const text = summaryText({ ...MESSAGE_REPORT, scenes: [], changesAll: [{ significant: false, title: 'x', detail: 'y' }] }, 'https://example.test/p');
+  assert.deepEqual(text.split('\n'), [
+    '사역이 길었지만 마음은 가벼웠던 한 주.', '', '⚖️ *2026-W24 : 06.08 - 06.14*', '', '📊 회고 열기 → https://example.test/p',
+  ]);
+});
+
+test('markdown control characters in written text are escaped, the link is not', () => {
+  const text = summaryText({
+    ...MESSAGE_REPORT,
+    openingNote: { text: '일_정*이 [많던] `주`' },
+    scenes: [{ day: 'mon', title: 'KT_WBS *작성*', detail: '본문' }],
+    changesAll: [],
+  }, 'https://example.test/weeks/2026_W24.html');
+  assert.ok(text.includes('일\\_정\\*이 \\[많던] \\`주\\`'));
+  assert.ok(text.includes('• 월 — KT\\_WBS \\*작성\\*'));
+  assert.ok(text.endsWith('https://example.test/weeks/2026_W24.html'));
+});
+
+test('sendReport no longer forces a reply prompt', async () => {
+  const saved = { fetch: globalThis.fetch, token: process.env.TELEGRAM_BOT_TOKEN, chat: process.env.TELEGRAM_CHAT_ID };
+  let body = null;
+  process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+  process.env.TELEGRAM_CHAT_ID = '42';
+  globalThis.fetch = async (url, init) => {
+    body = JSON.parse(init.body);
+    return { ok: true, json: async () => ({ ok: true, result: { message_id: 7 } }) };
+  };
+  try {
+    assert.equal(await sendReport('본문'), 7);
+    assert.equal(body.reply_markup, undefined);
+    assert.equal(body.parse_mode, 'Markdown');
+    assert.equal(body.text, '본문');
+  } finally {
+    globalThis.fetch = saved.fetch;
+    if (saved.token === undefined) delete process.env.TELEGRAM_BOT_TOKEN; else process.env.TELEGRAM_BOT_TOKEN = saved.token;
+    if (saved.chat === undefined) delete process.env.TELEGRAM_CHAT_ID; else process.env.TELEGRAM_CHAT_ID = saved.chat;
+  }
 });

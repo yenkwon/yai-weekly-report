@@ -4,31 +4,34 @@ import { coarsenTimeline, trendSlice } from './publicPayload.js';
 
 const reportLabel = (report) => report.weekLabel || report.week;
 
+
+// Telegram's legacy Markdown mode fails the whole send on an unbalanced
+// control character, and these strings are written by a model or copied from
+// event titles.
+const md = (value) => String(value ?? '').replace(/([_*`\[])/g, '\\$1');
+
+// The message only has to give a reason to open the page.
+const KO = { mon:'월', tue:'화', wed:'수', thu:'목', fri:'금', sat:'토', sun:'일' };
+
+// Telegram's legacy Markdown mode fails the whole send on an unbalanced
+// control character, and these strings are written by a model or copied from
+// event titles.
+
+// The message only has to give a reason to open the page.
 export function summaryText(report, link) {
-  const changes = (report.changes || []).slice(0, 3).map((item) => `• ${item.title} — ${item.detail}`);
-  const special = report.notableEvents?.items?.[0];
-  const experiment = report.recommendations?.[0];
-  const lines = [
-    report.openingNote.text,
+  const scenes = (report.scenes || []).map((scene) => `• ${KO[scene.day] || ''} — ${md(scene.title)}`);
+  const change = (report.changesAll || []).find((item) => item.significant);
+  return [
+    md(report.openingNote.text),
     '',
-    `⚖️ *${reportLabel(report)} 주간 리포트*`,
+    `⚖️ *${md(reportLabel(report))}*`,
+    ...(scenes.length ? ['', '*이번 주의 장면*', ...scenes] : []),
+    ...(change ? ['', `*달라진 것* ${md(change.title)} — ${md(change.detail)}`] : []),
     '',
-    '*이번 주 달라진 3가지*',
-    ...changes,
-    ...(special ? ['', `🗓 *특별 일정* ${special.title} — ${special.reasons.join(', ')}`] : []),
-    '',
-    `💡 *${report.integratedInsight.title}*`,
-    report.integratedInsight.detail,
-    ...(report.lifeContext?.present ? ['', `🌿 *생활 맥락* ${report.lifeContext.detail}`] : []),
-    '',
-    `📅 ${report.preview.title}: ${report.preview.detail}`,
-    ...(experiment ? ['', `🧪 *다음 주 실험 하나* ${experiment.title}`, experiment.detail] : []),
-    '',
-    `📊 대시보드 → ${link}`,
-  ];
-  if (!report.sleepKnown) lines.push('', '💤 수면은 추정치라 회복 여부를 단정하지 않았어요. 실제 수면은 답장으로 숫자만 보내주세요.');
-  return lines.join('\n');
+    `📊 회고 열기 → ${link}`,
+  ].join('\n');
 }
+
 
 export function renderHTML(report, options = {}) {
   const { templatePath = './templates/dashboard-v3.html', history } =
