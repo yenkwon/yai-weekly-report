@@ -1,4 +1,5 @@
 import { sendReport } from '../src/telegram.js';
+import { renderHTML } from '../src/renderReportV2.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeText, longestCommonRun, sourceTexts, overlapsSource } from '../src/reflectionGuard.js';
@@ -391,3 +392,81 @@ test('sendReport no longer forces a reply prompt', async () => {
     if (saved.chat === undefined) delete process.env.TELEGRAM_CHAT_ID; else process.env.TELEGRAM_CHAT_ID = saved.chat;
   }
 });
+
+const V4_HEADINGS = ['이번 주의 장면', '요일별 한 줄', '내가 쓴 말의 주제', '지난주와 달라진 것', '최근 8주 흐름', '다음 주'];
+
+test('the v4 page has the six reflection sections and none of the retired ones', () => {
+  const html = renderHTML({ week: '2026-W24' });
+  assert.match(html, /<meta name="robots" content="noindex,nofollow">/);
+  for (const heading of V4_HEADINGS) assert.ok(html.includes(`<h2>${heading}</h2>`), heading);
+  for (const gone of ['네 가지 렌즈', '168시간 분배', '통합 인사이트', '새롭거나 특별했던 일정', 'id="stats"', 'integratedInsight'])
+    assert.equal(html.includes(gone), false, gone);
+  for (const id of ['scenes', 'dayrows', 'themes', 'changes', 'numBody', 'trends', 'experimentTitle'])
+    assert.ok(html.includes(`id="${id}"`), id);
+});
+
+test('the v4 page script parses and the week data is embedded', () => {
+  const html = renderHTML({ week: '2026-W24', scenes: [{ day: 'mon', title: '</script><b>', detail: 'x' }] });
+  const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
+  assert.doesNotThrow(() => new Function(script));
+  assert.ok(script.includes('"week":"2026-W24"'));
+  assert.equal(script.includes('</script><b>'), false);
+});
+
+function runPage(report, history) {
+  const html = renderHTML(report, { history });
+  const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
+  const nodes = new Map();
+  const node = () => ({
+    innerHTML: '', textContent: '', hidden: false, style: {}, dataset: {}, className: '', clientWidth: 320,
+    appendChild() {}, addEventListener() {}, setAttribute() {}, closest() { return null; },
+  });
+  const document = {
+    title: '', body: node(),
+    getElementById(id) { if (!nodes.has(id)) nodes.set(id, node()); return nodes.get(id); },
+    createElement: node,
+  };
+  new Function('document', 'window', script)(document, {});
+  return { nodes, document };
+}
+
+test('the v4 page renders an empty week without throwing and hides empty sections', () => {
+  const { metrics, analysis } = weekOf([]);
+  const synthesis = finalizeReflection({ draft: fallbackDraft(metrics, analysis), source: 'fallback', metrics, analysis, selfReports: [], history: [] });
+  const { nodes } = runPage({
+    week: '2026-W24', weekLabel: '2026-W24 : 06.08 - 06.14', sleepKnown: false, synthesisSource: 'fallback',
+    ...metrics, ...analysis,
+    openingNote: synthesis.openingNote, scenes: synthesis.scenes, dayLines: synthesis.dayLines,
+    themes: synthesis.themes, recommendations: [synthesis.experiment],
+  }, []);
+  assert.equal(nodes.get('sceneSection').hidden, true);
+  assert.equal(nodes.get('themeSection').hidden, true);
+  assert.equal(nodes.get('trendSection').hidden, true);
+  assert.equal((nodes.get('dayrows').innerHTML.match(/class="dayrow/g) || []).length, 7);
+  assert.equal((nodes.get('dayrows').innerHTML.match(/기록 없음/g) || []).length, 7);
+  assert.ok(nodes.get('changes').innerHTML.includes('지난주와 크게 달라진 수치는 없습니다'));
+});
+
+test('the v4 page renders a reported week: scenes, scores, themes, significant changes', () => {
+  const reports = [{ date: '2026-06-10', score: 3, note: '수요일 기록' }, { date: '2026-06-11', score: 4.7, note: '목요일 기록' }];
+  const { metrics, analysis } = weekOf(WEEK_EVENTS, reports, [PRIOR_ROW]);
+  const synthesis = finalizeReflection({ draft: draftOf(), source: 'llm', metrics, analysis, selfReports: reports, history: [PRIOR_ROW] });
+  const { nodes } = runPage({
+    week: '2026-W24', weekLabel: '2026-W24 : 06.08 - 06.14', sleepKnown: false, synthesisSource: 'llm',
+    ...metrics, ...analysis,
+    openingNote: synthesis.openingNote, scenes: synthesis.scenes, dayLines: synthesis.dayLines,
+    themes: synthesis.themes, recommendations: [synthesis.experiment],
+  }, [PRIOR_ROW, { week: '2026-W24', ...metrics, ...analysis.historyRow }]);
+  assert.equal(nodes.get('sceneSection').hidden, false);
+  assert.ok(nodes.get('scenes').innerHTML.includes('예배에 붙들린 저녁'));
+  assert.ok(nodes.get('dayrows').innerHTML.includes('4.7'));
+  assert.equal((nodes.get('dayrows').innerHTML.match(/기록 없음/g) || []).length, 5);
+  assert.ok(nodes.get('themes').innerHTML.includes('이번 주 처음'));
+  const significant = analysis.changesAll.filter((c) => c.significant).length;
+  assert.ok(significant > 0);
+  assert.equal((nodes.get('changes').innerHTML.match(/class="card change"/g) || []).length, significant);
+  assert.equal((nodes.get('numBody').innerHTML.match(/<tr>/g) || []).length, analysis.changesAll.length);
+  assert.ok(nodes.get('numBody').innerHTML.includes('추정'));
+});
+
+

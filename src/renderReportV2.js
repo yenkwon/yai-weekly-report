@@ -34,7 +34,7 @@ export function summaryText(report, link) {
 
 
 export function renderHTML(report, options = {}) {
-  const { templatePath = './templates/dashboard-v3.html', history } =
+  const { templatePath = './templates/dashboard-v4.html', history } =
     typeof options === 'string' ? { templatePath: options } : options;
   const template = fs.readFileSync(templatePath, 'utf8');
   return template.replace('/*__WEEK_DATA__*/ null', serializeForScript(publicReport(report, { history })));
