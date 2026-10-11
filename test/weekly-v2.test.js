@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { loadConfig, buildWeek, withTrends } from '../src/compute.js';
 import { analyze } from '../src/weeklyAnalysis.js';
-import { publicReport, appendHistory, appendPrivateEventHistory } from '../src/renderReportV2.js';
+import { publicReport, renderHTML, appendHistory, appendPrivateEventHistory } from '../src/renderReportV2.js';
 import { coarsenTimeline, trendSlice } from '../src/publicPayload.js';
 import { waitForUrl } from '../src/publish.js';
 import { loadLifeContext, summarizeLifeContext } from '../src/lifeContext.js';
@@ -13,6 +13,19 @@ import { applyLifeBaselines, compactLifeBaselines, loadLifeBaselines } from '../
 
 const cfg = loadConfig('./config');
 const start = '2026-06-08';
+
+test('dashboard gives summarized self-reports a dedicated, private-safe section', () => {
+  const html = renderHTML({
+    week:'2026-W24', openingNote:{text:'이번 주 요약',source:'llm'},
+    selfReports:[{date:'2026-06-08',note:'PRIVATE ORIGINAL MUST NOT APPEAR'}],
+    dayLines:{mon:{text:'가족과 시간을 보내고 밀린 일을 정리했다.',source:'report',score:4.5},
+      tue:{text:'일정 중심으로 보냈다.',source:'calendar',score:null}},
+    dateByDay:{mon:'2026-06-08',tue:'2026-06-09'},
+  });
+  assert.match(html, /id="recordSection"/);
+  assert.match(html, /가족과 시간을 보내고 밀린 일을 정리했다\./);
+  assert.doesNotMatch(html, /PRIVATE ORIGINAL MUST NOT APPEAR/);
+});
 
 test('cross-midnight events are split by local-day overlap', () => {
   const metrics = buildWeek([{

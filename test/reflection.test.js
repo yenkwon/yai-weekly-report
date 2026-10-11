@@ -440,6 +440,7 @@ test('the v4 page renders an empty week without throwing and hides empty section
     themes: synthesis.themes, recommendations: [synthesis.experiment],
   }, []);
   assert.equal(nodes.get('sceneSection').hidden, true);
+  assert.equal(nodes.get('recordSection').hidden, true);
   assert.equal(nodes.get('themeSection').hidden, true);
   assert.equal(nodes.get('trendSection').hidden, true);
   assert.equal((nodes.get('dayrows').innerHTML.match(/class="dayrow/g) || []).length, 7);
@@ -447,7 +448,7 @@ test('the v4 page renders an empty week without throwing and hides empty section
   assert.ok(nodes.get('changes').innerHTML.includes('지난주와 크게 달라진 수치는 없습니다'));
 });
 
-test('the v4 page renders a reported week: scenes, scores, themes, significant changes', () => {
+test('the v4 page renders a reported week: record summaries, scenes, scores, themes, significant changes', () => {
   const reports = [{ date: '2026-06-10', score: 3, note: '수요일 기록' }, { date: '2026-06-11', score: 4.7, note: '목요일 기록' }];
   const { metrics, analysis } = weekOf(WEEK_EVENTS, reports, [PRIOR_ROW]);
   const synthesis = finalizeReflection({ draft: draftOf(), source: 'llm', metrics, analysis, selfReports: reports, history: [PRIOR_ROW] });
@@ -458,6 +459,9 @@ test('the v4 page renders a reported week: scenes, scores, themes, significant c
     themes: synthesis.themes, recommendations: [synthesis.experiment],
   }, [PRIOR_ROW, { week: '2026-W24', ...metrics, ...analysis.historyRow }]);
   assert.equal(nodes.get('sceneSection').hidden, false);
+  assert.equal(nodes.get('recordSection').hidden, false);
+  assert.equal((nodes.get('records').innerHTML.match(/class="card record"/g) || []).length, 2);
+  assert.ok(nodes.get('records').innerHTML.includes('wed 하루를 새로 쓴 문장'));
   assert.ok(nodes.get('scenes').innerHTML.includes('예배에 붙들린 저녁'));
   assert.ok(nodes.get('dayrows').innerHTML.includes('4.7'));
   assert.equal((nodes.get('dayrows').innerHTML.match(/기록 없음/g) || []).length, 5);

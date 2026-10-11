@@ -42,6 +42,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Appl
 .eyebrow{margin:0 0 14px;color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.2em}
 .opening{margin:0;max-width:760px;font-size:clamp(22px,3.3vw,32px);font-weight:760;line-height:1.45;letter-spacing:-.025em}
 .lede{margin:16px 0 0;color:var(--muted);font-size:15px}
+.records{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.record{padding:18px 20px;border-left:4px solid var(--gold)}
+.record .rmeta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px;font-weight:700}
+.record h3{margin:8px 0 5px;font-size:15px}
+.record p{margin:0;color:var(--muted);font-size:14px}
 .confidence{display:inline-block;margin-left:6px;padding:2px 7px;border:1px solid var(--line);border-radius:999px;font-size:10px;vertical-align:2px;color:var(--muted)}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:30px}
 .stat,.card{background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px}
@@ -264,6 +269,12 @@ table.data tbody td{font-variant-numeric:tabular-nums}
 <p class="eyebrow" id="eyebrow"></p>
 <h1 class="opening" id="opening"></h1>
 
+<section id="recordSection" hidden>
+ <div class="head"><h2>내가 남긴 기록</h2></div>
+ <p class="sub">직접 적은 원문 대신, 그날의 자기보고를 짧게 정리했습니다.</p>
+ <div class="records" id="records"></div>
+</section>
+
 <section id="sceneSection">
  <div class="head"><h2>이번 주의 장면</h2></div>
  <p class="sub">이 주를 다시 떠올릴 때 먼저 생각날 순간들입니다.</p>
@@ -357,6 +368,8 @@ const round1=(v)=>Math.round(v*10)/10;
  document.title=`${label} 주간 회고`;
  el('eyebrow').textContent=`WEEKLY REFLECTION · ${label}`;
  el('opening').textContent=m.openingNote?.text||'';
+  const lines=m.dayLines||{};
+  const linesForDay=(day)=>lines[day]||{};
 
  // ---- scenes ----
  const scenes=Array.isArray(m.scenes)?m.scenes:[];
@@ -364,9 +377,18 @@ const round1=(v)=>Math.round(v*10)/10;
  if(scenes.length)el('scenes').innerHTML=scenes.map((s)=>
   `<article class="card scene"><span class="sday">${KO[s.day]?`${KO[s.day]}요일`:''}</span><h3>${esc(s.title)}</h3><p>${esc(s.detail)}</p></article>`).join('');
 
+ // ---- summarized self-reports ----
+ const records=DAYS.filter((day)=>linesForDay(day)?.source==='report'&&linesForDay(day)?.text)
+  .map((day)=>({day,line:linesForDay(day)}));
+ el('recordSection').hidden=!records.length;
+ if(records.length)el('records').innerHTML=records.map(({day,line})=>{
+  const date=(m.dateByDay?.[day]||'').match(/\d{4}-(\d{2})-(\d{2})/);
+  const score=Number.isFinite(line.score)?`${line.score}<small>/5</small>`:'기록함';
+  return `<article class="card record"><div class="rmeta"><span>${KO[day]}요일${date?` · ${Number(date[1])}월 ${Number(date[2])}일`:''}</span><span>${score}</span></div><p>${esc(line.text)}</p></article>`;
+ }).join('');
+
  // ---- a line per day, each with its own 24h bar ----
  const timeline=m.timeline||{};
- const lines=m.dayLines||{};
  const used=[];
  for(const day of DAYS)for(const [,,type] of timeline[day]||[])if(!used.includes(type))used.push(type);
  const order=['sleep','work','commute','ministry','life'];
