@@ -748,14 +748,14 @@
     "week": "2026-W41",
     "peakCommitted": 16,
     "restDays": 0,
-    "sleepAvg": 6.68,
-    "sleepMin": 5.42,
+    "sleepAvg": 6.4,
+    "sleepMin": 5.5,
     "drivingHours": 5.9,
     "buckets": {
-      "sleep": 46.7,
+      "sleep": 44.8,
       "work": 38.2,
       "commute": 5.9,
-      "ministry": 26.8,
+      "ministry": 25.3,
       "worship": 5.8,
       "career": 0,
       "growth": 0,
@@ -763,11 +763,11 @@
       "family": 0,
       "selfcare": 0,
       "exercise": 0,
-      "life": 44.7
+      "life": 48.1
     },
     "flags": {
       "satSleepover": true,
-      "sundaySleep7": true,
+      "sundaySleep7": false,
       "exerciseZero": true,
       "selfcareZero": true,
       "restZero": true
@@ -777,29 +777,30 @@
     "recoveryWeekly": null,
     "recoveryBalance": null,
     "sleepKnown": false,
-    "lateNightCount": 1,
-    "loadStdev": 3.7,
+    "lateNightCount": 2,
+    "loadStdev": 3.1,
     "avgScore": 4.2,
-    "lifeContextCount": 1,
-    "lifeContextDays": 1,
+    "lifeContextCount": 7,
+    "lifeContextDays": 6,
     "lifeContextThemeCounts": {
-      "body": 0,
-      "location": 1,
-      "work": 0,
-      "relationship": 0,
-      "emotion": 0
+      "body": 4,
+      "location": 5,
+      "work": 1,
+      "relationship": 3,
+      "emotion": 1,
+      "other": 1
     },
-    "lifeContextPlanCorrections": 1,
-    "lifeContextBodySignals": 0,
+    "lifeContextPlanCorrections": 2,
+    "lifeContextBodySignals": 4,
     "insightTopics": [
       "ministry",
       "g2a",
-      "문성은 목사 - 목요예배"
+      "안목사님 합주 라이딩"
     ],
     "themes": [
-      "내 기준으로 충분하다",
-      "피로 위에서 관계 유지하기",
-      "쉬는 틈을 의도적으로 만들기"
+      "피로 누적과 수면 단절",
+      "목사님과의 갈등",
+      "내 기준으로 충분히"
     ]
   }
 ]
