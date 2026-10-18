@@ -802,5 +802,63 @@
       "목사님과의 갈등",
       "내 기준으로 충분히"
     ]
+  },
+  {
+    "week": "2026-W42",
+    "peakCommitted": 15.3,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 7.2,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 44.9,
+      "commute": 7.2,
+      "ministry": 19,
+      "worship": 3.8,
+      "career": 0,
+      "growth": 0,
+      "social": 0.5,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 45.9
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 88,
+    "selfPct": 12,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 5,
+    "loadStdev": 2.2,
+    "avgScore": 3.3,
+    "lifeContextCount": 1,
+    "lifeContextDays": 1,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 1,
+      "work": 1,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 0,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "🚲마므레 라이딩",
+      "가족사진 전달"
+    ],
+    "themes": [
+      "내 기준으로 충분히",
+      "급함과 짜증의 뿌리",
+      "받아주는 사람들에 대한 고마움"
+    ]
   }
 ]
