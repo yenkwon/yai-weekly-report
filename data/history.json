@@ -968,5 +968,59 @@
       "감리교연합예배"
     ],
     "themes": []
+  },
+  {
+    "week": "2026-W45",
+    "peakCommitted": 15.3,
+    "restDays": 0,
+    "sleepAvg": 6.68,
+    "sleepMin": 5.42,
+    "drivingHours": 6.9,
+    "buckets": {
+      "sleep": 46.7,
+      "work": 45.6,
+      "commute": 6.9,
+      "ministry": 18.8,
+      "worship": 4.3,
+      "career": 0,
+      "growth": 0,
+      "social": 0,
+      "family": 0,
+      "selfcare": 0,
+      "exercise": 0,
+      "life": 45.8
+    },
+    "flags": {
+      "satSleepover": true,
+      "sundaySleep7": true,
+      "exerciseZero": true,
+      "selfcareZero": true,
+      "restZero": true
+    },
+    "othersPct": 89,
+    "selfPct": 12,
+    "recoveryWeekly": null,
+    "recoveryBalance": null,
+    "sleepKnown": false,
+    "lateNightCount": 3,
+    "loadStdev": 3.6,
+    "avgScore": null,
+    "lifeContextCount": 0,
+    "lifeContextDays": 0,
+    "lifeContextThemeCounts": {
+      "body": 0,
+      "location": 0,
+      "work": 0,
+      "relationship": 0,
+      "emotion": 0
+    },
+    "lifeContextPlanCorrections": 0,
+    "lifeContextBodySignals": 0,
+    "insightTopics": [
+      "ministry",
+      "선주생일🎂",
+      "마므레교회 재정 정리"
+    ],
+    "themes": []
   }
 ]
