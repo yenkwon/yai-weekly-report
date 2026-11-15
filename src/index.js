@@ -10,6 +10,7 @@ import { sendReport, sendText, readSleepReply } from './telegram.js';
 import { applyCorrectionsToConfig, loadCorrections, mergeSleepOverrides } from './corrections.js';
 import { loadLifeContext } from './lifeContext.js';
 import { applyLifeBaselines, compactLifeBaselines, loadLifeBaselines } from './lifeBaseline.js';
+import { alreadySentWeek } from './sendGuard.js';
 
 
 const MODE = process.argv[2] || 'send';
@@ -24,6 +25,11 @@ const lifeBaselines = loadLifeBaselines({ path:WORKLIFE_LIFE_BASELINE_PATH });
 const cfg = applyLifeBaselines(loadConfig('./config'), lifeBaselines);
 const range = lastWeekRange(cfg.routine.timezone);
 const week = range.week;
+// Scheduled and externally scheduled sends stop here when the week already went out.
+if (MODE === 'send' && process.env.SKIP_IF_SENT === '1' && alreadySentWeek('./data/last-msg.json', week)) {
+  console.log('already sent', { week });
+  process.exit(0);
+}
 const lifeContext = loadLifeContext({ path:WORKLIFE_NOW_CONTEXT_PATH, range });
 const corrections = loadCorrections(week);
 const correctedCfg = applyCorrectionsToConfig(cfg, corrections);

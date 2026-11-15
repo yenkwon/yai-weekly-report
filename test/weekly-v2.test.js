@@ -298,3 +298,30 @@ test('raw event titles are written only to the private history file', () => {
   assert.match(fs.readFileSync(privatePath,'utf8'), /원문 일정/);
   fs.rmSync(dir, { recursive:true, force:true });
 });
+
+// 2026-11-15: GitHub cron이 2~5시간씩 밀려 외부 스케줄러가 정시에 send를 깨운다.
+// 뒤늦게 도는 예약 실행이 같은 주를 두 번 보내면 안 된다.
+test('a week whose message id is recorded counts as already sent', async () => {
+  const { alreadySentWeek } = await import('../src/sendGuard.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'send-guard-'));
+  const file = path.join(dir, 'last-msg.json');
+  assert.equal(alreadySentWeek(file, '2026-W46'), false);
+  fs.writeFileSync(file, JSON.stringify({ week: '2026-W45', msgId: 438 }));
+  assert.equal(alreadySentWeek(file, '2026-W46'), false);
+  fs.writeFileSync(file, JSON.stringify({ week: '2026-W46', msgId: 460 }));
+  assert.equal(alreadySentWeek(file, '2026-W46'), true);
+  fs.writeFileSync(file, 'not json');
+  assert.equal(alreadySentWeek(file, '2026-W46'), false);
+});
+
+test('scheduled and externally scheduled sends skip a week already sent; cron avoids the hour', () => {
+  const workflow = fs.readFileSync('.github/workflows/weekly-report.yml', 'utf8');
+  assert.doesNotMatch(workflow, /cron: '0 /);
+  assert.match(workflow, /cron: '17 9 \* \* 0'/);
+  assert.match(workflow, /"\$\{\{ github\.event\.schedule \}\}" = "17 9 \* \* 0"/);
+  assert.match(workflow, /scheduled:\s+\{[^}]*default: 'false'/);
+  assert.match(workflow, /SKIP_IF_SENT: \$\{\{ \(github\.event_name == 'schedule' \|\| inputs\.scheduled == 'true'\) && '1' \|\| '' \}\}/);
+  const index = fs.readFileSync('src/index.js', 'utf8');
+  const guard = index.indexOf('alreadySentWeek(');
+  assert.ok(guard > 0 && guard < index.indexOf('await fetchWeek('), 'guard must run before any calendar call');
+});

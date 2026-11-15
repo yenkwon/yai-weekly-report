@@ -1,11 +1,15 @@
 name: weekly-balance-report
 on:
   schedule:
-    - cron: '0 9 * * 0'     # Sun 18:00 KST  → send report + ask for corrections
-    - cron: '0 23 * * 0'    # Mon 08:00 KST  → resend if corrections or sleep reply exist
+    # Off the hour: GitHub delays top-of-hour runs most. Through Nov 2026 the
+    # 18:00 send arrived 22:00-01:00 KST. An external scheduler now dispatches
+    # send on time with scheduled=true; these crons are the fallback.
+    - cron: '17 9 * * 0'    # Sun 18:17 KST  → send report + ask for corrections
+    - cron: '17 23 * * 0'   # Mon 08:17 KST  → resend if corrections or sleep reply exist
   workflow_dispatch:
     inputs:
       mode: { description: 'send | reconcile | publish', required: true, default: 'send' }
+      scheduled: { description: 'true when an external scheduler sent this run', required: false, default: 'false' }
 
 permissions:
   contents: write           # to commit history.json + docs/ for Pages
@@ -75,7 +79,8 @@ jobs:
         id: mode
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "${{ github.event.schedule }}" = "0 9 * * 0" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
+            # '0 9 * * 0' stays accepted for runs queued before the cron moved (2026-11-15).
+            if [ "${{ github.event.schedule }}" = "17 9 * * 0" ] || [ "${{ github.event.schedule }}" = "0 9 * * 0" ]; then echo "m=send" >> $GITHUB_OUTPUT; else echo "m=reconcile" >> $GITHUB_OUTPUT; fi
           else echo "m=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT; fi
       - name: Validate required secrets
         env:
@@ -105,6 +110,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SELF_REPORT_SOURCE: telegram
+          SKIP_IF_SENT: ${{ (github.event_name == 'schedule' || inputs.scheduled == 'true') && '1' || '' }}
           WORKLIFE_SELF_REPORTS_PATH: worklife-agent/store/self-reports.json
           WORKLIFE_NOW_CONTEXT_PATH: worklife-agent/store/now-context.json
           WORKLIFE_LIFE_BASELINE_PATH: worklife-agent/store/life-baseline.json
